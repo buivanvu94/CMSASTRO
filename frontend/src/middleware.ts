@@ -1,27 +1,24 @@
-import { defineMiddleware } from 'astro:middleware';
+﻿import { defineMiddleware } from 'astro:middleware';
 
-const publicRoutes = ['/login', '/forgot-password', '/reset-password'];
+const adminPublicRoutes = ['/admin/login', '/admin/forgot-password', '/admin/reset-password'];
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies, redirect } = context;
   const pathname = url.pathname;
-
-  // Check if route is public
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
-
-  // Get access token from cookies or localStorage (will be set by client)
   const accessToken = cookies.get('access_token')?.value;
 
-  // If accessing protected route without token, redirect to login
-  if (!isPublicRoute && !accessToken && pathname !== '/') {
-    return redirect('/login');
+  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
+  const isAdminPublicRoute = adminPublicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+
+  if (isAdminRoute && !isAdminPublicRoute && !accessToken) {
+    return redirect('/admin/login');
   }
 
-  // If accessing login page with valid token, redirect to dashboard
-  if (pathname === '/login' && accessToken) {
-    return redirect('/dashboard');
+  if ((pathname === '/admin' || pathname === '/admin/login') && accessToken) {
+    return redirect('/admin/dashboard');
   }
 
-  // Continue to the route
   return next();
 });

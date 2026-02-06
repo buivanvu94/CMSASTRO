@@ -109,7 +109,7 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
       } else {
         await categoriesApi.create(formData);
         alert('Category created successfully');
-        window.location.href = '/categories';
+        window.location.href = '/admin/categories';
       }
     } catch (error: any) {
       console.error('Failed to save category:', error);
@@ -296,7 +296,7 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
         {/* Actions */}
         <div className="flex justify-end gap-3">
           <a
-            href="/categories"
+            href="/admin/categories"
             className="px-6 py-3 text-base border border-amber-400/30 rounded-lg text-amber-100 hover:bg-amber-400/10 transition-colors"
           >
             Cancel
@@ -320,4 +320,5 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
     </>
   );
 }
+
 

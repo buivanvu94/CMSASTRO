@@ -55,6 +55,28 @@ router.post(
 );
 
 /**
+ * POST /auth/forgot-password
+ * Request password reset instructions
+ */
+router.post(
+  '/forgot-password',
+  authValidation.forgotPasswordValidation,
+  authValidation.handleValidationErrors,
+  authController.forgotPassword
+);
+
+/**
+ * POST /auth/reset-password
+ * Reset password with reset token
+ */
+router.post(
+  '/reset-password',
+  authValidation.resetPasswordValidation,
+  authValidation.handleValidationErrors,
+  authController.resetPassword
+);
+
+/**
  * GET /auth/me
  * Get current authenticated user
  * Requires authentication

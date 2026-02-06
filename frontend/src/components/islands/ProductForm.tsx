@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { productsApi, categoriesApi } from '@/lib/api';
 import MediaPicker from './MediaPicker';
 import PriceEditor from './PriceEditor';
@@ -151,7 +151,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       } else {
         await productsApi.create(data);
         alert('Product created successfully');
-        window.location.href = '/products';
+        window.location.href = '/admin/products';
       }
     } catch (error: any) {
       console.error('Failed to save product:', error);
@@ -410,7 +410,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
         {/* Actions */}
         <div className="flex justify-end gap-3">
           <a
-            href="/products"
+            href="/admin/products"
             className="px-6 py-3 text-base border border-amber-400/30 rounded-lg text-amber-100 hover:bg-amber-400/10 transition-colors cursor-pointer"
           >
             Cancel
@@ -442,3 +442,4 @@ export default function ProductForm({ productId }: ProductFormProps) {
     </>
   );
 }
+

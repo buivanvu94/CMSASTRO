@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { usersApi } from '@/lib/api';
 import Pagination from '@/components/ui/Pagination';
 
@@ -85,7 +85,7 @@ export default function UserTable() {
           <option value="inactive">Inactive</option>
         </select>
         <a
-          href="/users/new"
+          href="/admin/users/new"
           className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           New User
@@ -142,7 +142,7 @@ export default function UserTable() {
                       </td>
                       <td className="px-6 py-4 text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
-                          <a href={`/users/${user.id}`} className="text-blue-600 hover:text-blue-900">
+                          <a href={`/admin/users/${user.id}`} className="text-blue-600 hover:text-blue-900">
                             Edit
                           </a>
                           <button
@@ -174,3 +174,4 @@ export default function UserTable() {
     </div>
   );
 }
+

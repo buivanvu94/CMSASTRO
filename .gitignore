@@ -1,0 +1,5 @@
+# Dependencies
+node_modules/
+
+# Windows null device
+nul

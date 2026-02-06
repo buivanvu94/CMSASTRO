@@ -31,6 +31,10 @@ export const getCategoriesValidation = [
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('Limit must be between 1 and 100'),
+  query('type')
+    .optional()
+    .isIn(['post', 'product'])
+    .withMessage('Type must be either post or product'),
   query('status')
     .optional()
     .isIn(['active', 'inactive'])
@@ -45,6 +49,10 @@ export const getCategoriesValidation = [
  * Validation for getting category tree
  */
 export const getCategoryTreeValidation = [
+  query('type')
+    .optional()
+    .isIn(['post', 'product'])
+    .withMessage('Type must be either post or product')
 ];
 
 /**
@@ -95,8 +103,8 @@ export const createCategoryValidation = [
     .withMessage('Image ID must be a positive integer'),
   body('type')
     .optional()
-    .isIn(['post'])
-    .withMessage('Type must be post'),
+    .isIn(['post', 'product'])
+    .withMessage('Type must be either post or product'),
   body('sort_order')
     .optional()
     .isInt({ min: 0 })
@@ -149,8 +157,8 @@ export const updateCategoryValidation = [
     .withMessage('Image ID must be null or a positive integer'),
   body('type')
     .optional()
-    .isIn(['post'])
-    .withMessage('Type must be post'),
+    .isIn(['post', 'product'])
+    .withMessage('Type must be either post or product'),
   body('sort_order')
     .optional()
     .isInt({ min: 0 })

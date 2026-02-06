@@ -1,4 +1,8 @@
-import { findByEmail, comparePassword, create } from '../users/user.service.js';
+import crypto from 'crypto';
+import { Op } from 'sequelize';
+import User from '../users/user.model.js';
+import { findByEmail, comparePassword, create, hashPassword } from '../users/user.service.js';
+import { sendResetPasswordEmail } from '../../utils/mailer.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../middlewares/auth.js';
 import { AuthenticationError, ValidationError } from '../../middlewares/errorHandler.js';
 
@@ -187,6 +191,91 @@ export const logout = async (refreshToken) => {
 };
 
 /**
+ * Request password reset by email
+ * Always returns a generic success response to avoid account enumeration.
+ * @param {string} email - User email
+ * @returns {Promise<Object>}
+ */
+export const requestPasswordReset = async (email) => {
+  const user = await findByEmail(email);
+
+  if (user && user.status === 'active') {
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await user.update({
+      reset_password_token: hashedToken,
+      reset_password_expires_at: expiresAt
+    });
+
+    const frontendBase = process.env.FRONTEND_URL || 'http://localhost:4321';
+    const resetUrl = `${frontendBase.replace(/\/$/, '')}/admin/reset-password?token=${rawToken}`;
+
+    const emailResult = await sendResetPasswordEmail({
+      to: email,
+      fullName: user.full_name,
+      resetUrl,
+      expiresMinutes: 15
+    });
+
+    if (!emailResult.sent) {
+      console.log(`[AUTH] Password reset link for ${email}: ${resetUrl}`);
+    }
+
+    if (process.env.NODE_ENV !== 'production' && !emailResult.sent) {
+      return {
+        message: 'If an account exists with this email, password reset instructions have been sent.',
+        resetUrl
+      };
+    }
+  }
+
+  return {
+    message: 'If an account exists with this email, password reset instructions have been sent.'
+  };
+};
+
+/**
+ * Reset password with valid reset token
+ * @param {string} token - Raw reset token from email link
+ * @param {string} password - New password
+ * @returns {Promise<Object>}
+ */
+export const resetPassword = async (token, password) => {
+  if (!token) {
+    throw new ValidationError('Reset token is required');
+  }
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const now = new Date();
+
+  const user = await User.findOne({
+    where: {
+      reset_password_token: hashedToken,
+      reset_password_expires_at: { [Op.gt]: now },
+      status: 'active'
+    }
+  });
+
+  if (!user) {
+    throw new AuthenticationError('Invalid or expired reset token');
+  }
+
+  const newHashedPassword = await hashPassword(password);
+
+  await user.update({
+    password: newHashedPassword,
+    reset_password_token: null,
+    reset_password_expires_at: null
+  });
+
+  return {
+    message: 'Password reset successful'
+  };
+};
+
+/**
  * Get current user by ID
  * @param {number} userId - User ID from token
  * @returns {Promise<Object>} - User object
@@ -246,6 +335,8 @@ export default {
   register,
   refreshAccessToken,
   logout,
+  requestPasswordReset,
+  resetPassword,
   getCurrentUser,
   verifyCredentials,
   isTokenInvalidated,

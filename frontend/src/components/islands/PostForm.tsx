@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { postsApi, categoriesApi } from '@/lib/api';
 import MediaPicker from './MediaPicker';
 
@@ -122,7 +122,7 @@ export default function PostForm({ postId }: PostFormProps) {
       } else {
         await postsApi.create(data);
         alert('Post created successfully');
-        window.location.href = '/posts';
+        window.location.href = '/admin/posts';
       }
     } catch (error: any) {
       console.error('Failed to save post:', error);
@@ -343,7 +343,7 @@ export default function PostForm({ postId }: PostFormProps) {
         {/* Actions */}
         <div className="flex justify-between items-center">
           <a
-            href="/posts"
+            href="/admin/posts"
             className="px-6 py-3 text-base border border-amber-400/30 rounded-lg text-amber-100 hover:bg-amber-400/10 transition-colors cursor-pointer"
           >
             Cancel
@@ -378,3 +378,4 @@ export default function PostForm({ postId }: PostFormProps) {
     </>
   );
 }
+

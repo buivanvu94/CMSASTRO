@@ -11,11 +11,11 @@ const Product = sequelize.define('Product', {
     primaryKey: true,
     autoIncrement: true
   },
-  category_id: {
+  product_category_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'categories',
+      model: 'product_categories',
       key: 'id'
     },
     onDelete: 'SET NULL'
@@ -126,7 +126,7 @@ const Product = sequelize.define('Product', {
       unique: true
     },
     {
-      fields: ['category_id']
+      fields: ['product_category_id']
     },
     {
       fields: ['status']

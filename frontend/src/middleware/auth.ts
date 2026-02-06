@@ -1,10 +1,10 @@
-import { defineMiddleware } from 'astro:middleware';
+﻿import { defineMiddleware } from 'astro:middleware';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, redirect, cookies } = context;
   
   // Protected routes that require authentication
-  const protectedRoutes = ['/dashboard', '/posts', '/products', '/categories', '/media', '/reservations', '/contacts', '/users', '/settings', '/menus'];
+  const protectedRoutes = ['/admin/dashboard', '/admin/posts', '/admin/products', '/admin/categories', '/admin/media', '/admin/reservations', '/admin/contacts', '/admin/users', '/admin/settings', '/admin/menus'];
   
   // Check if current path is protected
   const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route));
@@ -18,3 +18,4 @@ export const onRequest = defineMiddleware(async (context, next) => {
   
   return next();
 });
+

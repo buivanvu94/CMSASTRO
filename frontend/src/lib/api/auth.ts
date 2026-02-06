@@ -29,6 +29,11 @@ export interface RefreshTokenResponse {
   refreshToken?: string;
 }
 
+export interface ForgotPasswordResponse {
+  message: string;
+  resetUrl?: string;
+}
+
 const authApi = {
   /**
    * Login with email and password
@@ -101,6 +106,22 @@ const authApi = {
    */
   async me(): Promise<AuthResponse['user']> {
     const response = await apiClient.get('/auth/me');
+    return response.data.data;
+  },
+
+  /**
+   * Request password reset link
+   */
+  async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response.data.data;
+  },
+
+  /**
+   * Reset password with token
+   */
+  async resetPassword(token: string, password: string): Promise<{ message: string }> {
+    const response = await apiClient.post('/auth/reset-password', { token, password });
     return response.data.data;
   },
 };

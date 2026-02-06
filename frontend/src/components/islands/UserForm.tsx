@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { usersApi } from '@/lib/api';
 import MediaPicker from './MediaPicker';
 
@@ -92,7 +92,7 @@ export default function UserForm({ userId }: UserFormProps) {
       } else {
         await usersApi.create(data);
         alert('User created successfully');
-        window.location.href = '/users';
+        window.location.href = '/admin/users';
       }
     } catch (error: any) {
       console.error('Failed to save user:', error);
@@ -236,7 +236,7 @@ export default function UserForm({ userId }: UserFormProps) {
 
         <div className="flex justify-end gap-3">
           <a
-            href="/users"
+            href="/admin/users"
             className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Cancel
@@ -260,3 +260,4 @@ export default function UserForm({ userId }: UserFormProps) {
     </>
   );
 }
+

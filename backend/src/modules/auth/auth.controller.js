@@ -57,6 +57,30 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Request password reset
+ * POST /auth/forgot-password
+ */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const result = await authService.requestPasswordReset(email);
+
+  return successResponse(res, result, 'Password reset request processed');
+});
+
+/**
+ * Reset password using reset token
+ * POST /auth/reset-password
+ */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+
+  const result = await authService.resetPassword(token, password);
+
+  return successResponse(res, result, 'Password reset successful');
+});
+
+/**
  * Get current authenticated user
  * GET /auth/me
  */
@@ -72,5 +96,7 @@ export default {
   register,
   refresh,
   logout,
+  forgotPassword,
+  resetPassword,
   getCurrentUser
 };

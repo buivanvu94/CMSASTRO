@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { productsApi } from '@/lib/api';
 import { $user } from '@/stores/auth';
@@ -106,7 +106,7 @@ export default function ProductTable() {
           <option value="archived" className="bg-gray-800 text-amber-100">Archived</option>
         </select>
         <a
-          href="/products/new"
+          href="/admin/products/new"
           className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-xl hover:from-amber-600 hover:to-yellow-700 transition-all duration-200 whitespace-nowrap font-medium shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30"
         >
           New Product
@@ -160,9 +160,6 @@ export default function ProductTable() {
                           <div>
                             <div className="text-sm font-medium text-amber-100">
                               {product.name}
-                              {product.is_featured && (
-                                <span className="ml-2 text-xs text-amber-400">★ Featured</span>
-                              )}
                             </div>
                             <div className="text-xs text-gray-500">{product.slug}</div>
                           </div>
@@ -198,7 +195,7 @@ export default function ProductTable() {
                       <td className="px-6 py-4 text-right text-sm font-medium">
                         <div className="flex justify-end gap-3">
                           <a
-                            href={`/products/${product.id}`}
+                            href={`/admin/products/${product.id}`}
                             className="text-blue-400 hover:text-blue-300 transition-colors"
                           >
                             Edit
@@ -239,3 +236,4 @@ export default function ProductTable() {
     </div>
   );
 }
+

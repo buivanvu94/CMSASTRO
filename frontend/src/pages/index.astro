@@ -1,7 +1,22 @@
 ---
-// Redirect to dashboard or login
-export const prerender = false;
+import BaseLayout from '@/layouts/BaseLayout.astro';
 
-const response = Astro.redirect('/dashboard');
-return response;
+export const prerender = false;
 ---
+
+<BaseLayout title="Trang chủ">
+  <main class="min-h-screen grid place-items-center p-8 text-center">
+    <div>
+      <h1 class="text-3xl font-semibold mb-3">Trang chủ website</h1>
+      <p class="mb-4 text-gray-600">
+        Đây là phần public tại <code>/</code>. Khu vực quản trị nằm ở <code>/admin</code>.
+      </p>
+      <a
+        href="/admin"
+        class="inline-block px-4 py-2 rounded-lg bg-black text-white no-underline hover:opacity-90 transition-opacity"
+      >
+        Vào trang quản trị
+      </a>
+    </div>
+  </main>
+</BaseLayout>

@@ -38,6 +38,10 @@ export const getProductsValidation = [
     .optional()
     .isString()
     .trim(),
+  query('productCategoryId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Product category ID must be a positive integer'),
   query('categoryId')
     .optional()
     .isInt({ min: 1 })
@@ -119,10 +123,10 @@ export const createProductValidation = [
     .optional()
     .isString()
     .trim(),
-  body('category_id')
+  body('product_category_id')
     .optional()
     .isInt({ min: 1 })
-    .withMessage('Category ID must be a positive integer'),
+    .withMessage('Product category ID must be a positive integer'),
   body('featured_image_id')
     .optional()
     .isInt({ min: 1 })
@@ -194,10 +198,10 @@ export const updateProductValidation = [
     .optional()
     .isString()
     .trim(),
-  body('category_id')
+  body('product_category_id')
     .optional()
     .isInt({ min: 1 })
-    .withMessage('Category ID must be a positive integer'),
+    .withMessage('Product category ID must be a positive integer'),
   body('featured_image_id')
     .optional()
     .isInt({ min: 1 })

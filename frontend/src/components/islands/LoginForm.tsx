@@ -69,7 +69,7 @@ export default function LoginForm() {
       
       // Clear the flag and redirect
       sessionStorage.removeItem('logging_in');
-      window.location.replace('/dashboard');
+      window.location.replace('/admin/dashboard');
     } catch (error: any) {
       console.error('❌ [LOGIN] Login error:', error);
       sessionStorage.removeItem('logging_in');
@@ -188,7 +188,7 @@ export default function LoginForm() {
           </label>
         </div>
 
-        <a href="/forgot-password" className="text-sm text-amber-400 hover:text-amber-300 transition-colors font-medium">
+        <a href="/admin/forgot-password" className="text-sm text-amber-400 hover:text-amber-300 transition-colors font-medium">
           Quên mật khẩu?
         </a>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { postsApi } from '@/lib/api';
 import { $user } from '@/stores/auth';
@@ -98,7 +98,7 @@ export default function PostTable() {
           <option value="published" className="bg-gray-800 text-amber-100">Published</option>
         </select>
         <a
-          href="/posts/new"
+          href="/admin/posts/new"
           className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-xl hover:from-amber-600 hover:to-yellow-700 transition-all duration-200 whitespace-nowrap font-medium shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30"
         >
           New Post
@@ -153,7 +153,7 @@ export default function PostTable() {
                             <div className="text-sm font-medium text-amber-100">
                               {post.title}
                               {post.is_featured && (
-                                <span className="ml-2 text-xs text-amber-400">★ Featured</span>
+                                <span className="ml-2 text-xs text-amber-400">â˜… Featured</span>
                               )}
                             </div>
                             <div className="text-xs text-gray-500">{post.slug}</div>
@@ -177,7 +177,7 @@ export default function PostTable() {
                       <td className="px-6 py-4 text-right text-sm font-medium">
                         <div className="flex justify-end gap-3">
                           <a
-                            href={`/posts/${post.id}`}
+                            href={`/admin/posts/${post.id}`}
                             className="text-blue-400 hover:text-blue-300 transition-colors"
                           >
                             Edit
@@ -218,3 +218,4 @@ export default function PostTable() {
     </div>
   );
 }
+

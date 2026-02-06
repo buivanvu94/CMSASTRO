@@ -165,7 +165,7 @@ export default function CategoryTree() {
               {/* Actions */}
               <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
                 <a
-                  href={`/categories/${category.id}`}
+                  href={`/admin/categories/${category.id}`}
                   className="p-1.5 text-amber-300 hover:bg-amber-400/10 rounded transition-colors"
                   title="Edit"
                 >
@@ -218,7 +218,7 @@ export default function CategoryTree() {
     <div className="space-y-5 text-base">
       <div className="flex justify-end items-center">
         <a
-          href="/categories/new"
+          href="/admin/categories/new"
           className="px-5 py-3 text-base font-medium bg-gradient-to-r from-amber-500 to-yellow-600 text-black rounded-xl hover:from-amber-400 hover:to-yellow-500 transition-colors"
         >
           Add Category
@@ -239,4 +239,5 @@ export default function CategoryTree() {
     </div>
   );
 }
+
 

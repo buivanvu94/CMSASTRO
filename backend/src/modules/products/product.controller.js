@@ -17,13 +17,15 @@ import { asyncHandler } from '../../middlewares/errorHandler.js';
  * GET /products
  */
 export const getProducts = asyncHandler(async (req, res) => {
-  const { page, limit, search, categoryId, status, isFeatured } = req.query;
+  const { page, limit, search, productCategoryId, categoryId, status, isFeatured } = req.query;
 
   const result = await productService.findAll({
     page: parseInt(page) || 1,
     limit: parseInt(limit) || 20,
     search,
-    categoryId: categoryId ? parseInt(categoryId) : null,
+    productCategoryId: productCategoryId
+      ? parseInt(productCategoryId)
+      : (categoryId ? parseInt(categoryId) : null),
     status,
     isFeatured: isFeatured !== undefined ? isFeatured === 'true' : null
   });

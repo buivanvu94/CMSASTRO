@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Client-side authentication guard
  * Checks if user is authenticated and redirects to login if not
  */
@@ -9,7 +9,7 @@ export function checkAuth(): boolean {
   
   if (!accessToken) {
     // No token, redirect to login
-    window.location.href = '/login';
+    window.location.href = '/admin/login';
     return false;
   }
   
@@ -25,3 +25,4 @@ export function initAuthGuard(): void {
   // Check auth immediately
   checkAuth();
 }
+

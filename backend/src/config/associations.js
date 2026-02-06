@@ -6,6 +6,7 @@
 import User from '../modules/users/user.model.js';
 import Media from '../modules/media/media.model.js';
 import Category from '../modules/categories/category.model.js';
+import ProductCategory from '../modules/product-categories/product-category.model.js';
 import Post from '../modules/posts/post.model.js';
 import Product from '../modules/products/product.model.js';
 import ProductPrice from '../modules/products/product-price.model.js';
@@ -83,14 +84,30 @@ export const setupAssociations = () => {
   });
 
   // Product <-> Category
-  Product.belongsTo(Category, {
-    as: 'category',
-    foreignKey: 'category_id',
+  ProductCategory.belongsTo(ProductCategory, {
+    as: 'parent',
+    foreignKey: 'parent_id',
     onDelete: 'SET NULL'
   });
-  Category.hasMany(Product, {
+  ProductCategory.hasMany(ProductCategory, {
+    as: 'children',
+    foreignKey: 'parent_id'
+  });
+
+  ProductCategory.belongsTo(Media, {
+    as: 'image',
+    foreignKey: 'image_id',
+    onDelete: 'SET NULL'
+  });
+
+  Product.belongsTo(ProductCategory, {
+    as: 'category',
+    foreignKey: 'product_category_id',
+    onDelete: 'SET NULL'
+  });
+  ProductCategory.hasMany(Product, {
     as: 'products',
-    foreignKey: 'category_id'
+    foreignKey: 'product_category_id'
   });
 
   // Product <-> Media (featured image)

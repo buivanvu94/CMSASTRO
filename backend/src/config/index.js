@@ -37,6 +37,19 @@ export const config = {
   // CORS
   cors: {
     origin: process.env.CORS_ORIGIN || 'http://localhost:4321'
+  },
+
+  // Frontend URL
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4321',
+
+  // SMTP / Mail
+  mail: {
+    host: process.env.SMTP_HOST || '',
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === 'true',
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || process.env.SMTP_USER || ''
   }
 };
 

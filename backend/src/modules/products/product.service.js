@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import Product from './product.model.js';
 import ProductPrice from './product-price.model.js';
-import Category from '../categories/category.model.js';
+import ProductCategory from '../product-categories/product-category.model.js';
 import Media from '../media/media.model.js';
 import { NotFoundError, ValidationError } from '../../middlewares/errorHandler.js';
 import { generateSlugFromTitle } from '../../utils/slug.js';
@@ -26,6 +26,17 @@ const slugExists = async (slug, excludeId = null) => {
   return count > 0;
 };
 
+const validateProductCategory = async (productCategoryId) => {
+  if (!productCategoryId) {
+    return;
+  }
+
+  const category = await ProductCategory.findByPk(productCategoryId);
+  if (!category) {
+    throw new ValidationError('Product category not found');
+  }
+};
+
 /**
  * Find all products with pagination and filtering
  * @param {Object} options - Query options
@@ -35,7 +46,7 @@ export const findAll = async ({
   page = 1,
   limit = 20,
   search = '',
-  categoryId = null,
+  productCategoryId = null,
   status = null,
   isFeatured = null
 } = {}) => {
@@ -52,8 +63,8 @@ export const findAll = async ({
     ];
   }
 
-  if (categoryId) {
-    where.category_id = categoryId;
+  if (productCategoryId) {
+    where.product_category_id = productCategoryId;
   }
 
   if (status) {
@@ -71,7 +82,7 @@ export const findAll = async ({
     order: [['sort_order', 'ASC'], ['created_at', 'DESC']],
     include: [
       {
-        model: Category,
+        model: ProductCategory,
         as: 'category',
         attributes: ['id', 'name', 'slug']
       },
@@ -109,7 +120,7 @@ export const findById = async (id) => {
   const product = await Product.findByPk(id, {
     include: [
       {
-        model: Category,
+        model: ProductCategory,
         as: 'category',
         attributes: ['id', 'name', 'slug']
       },
@@ -144,7 +155,7 @@ export const findBySlug = async (slug) => {
     where: { slug },
     include: [
       {
-        model: Category,
+        model: ProductCategory,
         as: 'category',
         attributes: ['id', 'name', 'slug']
       },
@@ -177,6 +188,8 @@ export const findBySlug = async (slug) => {
  * @returns {Promise<Object>} - Created product
  */
 export const create = async (data, prices = []) => {
+  await validateProductCategory(data.product_category_id);
+
   // Generate unique slug from name
   const slug = await generateSlugFromTitle(data.name, slugExists);
 
@@ -214,6 +227,10 @@ export const create = async (data, prices = []) => {
  */
 export const update = async (id, data) => {
   const product = await findById(id);
+
+  if (Object.prototype.hasOwnProperty.call(data, 'product_category_id')) {
+    await validateProductCategory(data.product_category_id);
+  }
 
   // Regenerate slug if name changes and no custom slug provided
   if (data.name && data.name !== product.name && !data.slug) {

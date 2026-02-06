@@ -17,12 +17,13 @@ import { asyncHandler } from '../../middlewares/errorHandler.js';
  * GET /categories
  */
 export const getCategories = asyncHandler(async (req, res) => {
-  const { page, limit, search, status, parentId } = req.query;
+  const { page, limit, search, type, status, parentId } = req.query;
 
   const result = await categoryService.findAll({
     page: parseInt(page) || 1,
     limit: parseInt(limit) || 20,
     search,
+    type,
     status,
     parentId: parentId ? parseInt(parentId) : null
   });
@@ -42,7 +43,8 @@ export const getCategories = asyncHandler(async (req, res) => {
  * GET /categories/tree
  */
 export const getCategoryTree = asyncHandler(async (req, res) => {
-  const tree = await categoryService.findTree();
+  const { type } = req.query;
+  const tree = await categoryService.findTree(type);
 
   return successResponse(res, tree, 'Category tree retrieved successfully');
 });

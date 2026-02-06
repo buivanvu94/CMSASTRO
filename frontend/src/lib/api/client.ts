@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
+﻿import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 
 // Create base axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -111,7 +111,7 @@ apiClient.interceptors.response.use(
       // No refresh token, redirect to login
       clearTokens();
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        window.location.href = '/admin/login';
       }
       return Promise.reject(error);
     }
@@ -149,7 +149,7 @@ apiClient.interceptors.response.use(
       clearTokens();
       
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        window.location.href = '/admin/login';
       }
       
       return Promise.reject(refreshError);
@@ -158,3 +158,4 @@ apiClient.interceptors.response.use(
 );
 
 export { apiClient, setAccessToken, setRefreshToken, clearTokens, getAccessToken, getRefreshToken };
+

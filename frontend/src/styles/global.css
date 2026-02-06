@@ -5,6 +5,7 @@
 @layer base {
   body {
     @apply antialiased;
+    font-family: 'Noto Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
 }
 

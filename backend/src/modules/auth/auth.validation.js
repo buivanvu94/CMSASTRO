@@ -55,6 +55,30 @@ export const logoutValidation = [
 ];
 
 /**
+ * Validation for forgot password
+ */
+export const forgotPasswordValidation = [
+  body('email')
+    .trim()
+    .notEmpty().withMessage('Email is required')
+    .isEmail().withMessage('Invalid email format')
+    .normalizeEmail()
+];
+
+/**
+ * Validation for reset password
+ */
+export const resetPasswordValidation = [
+  body('token')
+    .trim()
+    .notEmpty().withMessage('Reset token is required'),
+
+  body('password')
+    .notEmpty().withMessage('Password is required')
+    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+];
+
+/**
  * Middleware to handle validation errors
  */
 export const handleValidationErrors = (req, res, next) => {
@@ -81,5 +105,7 @@ export default {
   registerValidation,
   refreshTokenValidation,
   logoutValidation,
+  forgotPasswordValidation,
+  resetPasswordValidation,
   handleValidationErrors
 };
