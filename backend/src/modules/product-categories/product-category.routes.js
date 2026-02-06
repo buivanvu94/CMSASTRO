@@ -1,124 +1,83 @@
 import express from 'express';
-import * as categoryController from './category.controller.js';
-import * as categoryValidation from './category.validation.js';
+import * as productCategoryController from './product-category.controller.js';
+import * as productCategoryValidation from './product-category.validation.js';
 import { authenticate } from '../../middlewares/auth.js';
 import { authorize } from '../../middlewares/authorize.js';
 
 const router = express.Router();
 
-/**
- * Category Routes
- * All routes require authentication
- */
-
-/**
- * GET /categories/stats
- * Get category statistics
- */
 router.get(
   '/stats',
   authenticate,
-  categoryController.getStats
+  productCategoryController.getStats
 );
 
-/**
- * GET /categories/tree
- * Get categories in tree structure
- */
 router.get(
   '/tree',
   authenticate,
-  categoryValidation.getCategoryTreeValidation,
-  categoryValidation.handleValidationErrors,
-  categoryController.getCategoryTree
+  productCategoryValidation.getProductCategoryTreeValidation,
+  productCategoryValidation.handleValidationErrors,
+  productCategoryController.getProductCategoryTree
 );
 
-/**
- * PUT /categories/reorder
- * Reorder categories
- */
 router.put(
   '/reorder',
   authenticate,
   authorize(['admin', 'editor']),
-  categoryValidation.reorderCategoriesValidation,
-  categoryValidation.handleValidationErrors,
-  categoryController.reorderCategories
+  productCategoryValidation.reorderProductCategoriesValidation,
+  productCategoryValidation.handleValidationErrors,
+  productCategoryController.reorderProductCategories
 );
 
-/**
- * GET /categories/slug/:slug
- * Get category by slug
- */
 router.get(
   '/slug/:slug',
   authenticate,
-  categoryValidation.getCategoryBySlugValidation,
-  categoryValidation.handleValidationErrors,
-  categoryController.getCategoryBySlug
+  productCategoryValidation.getProductCategoryBySlugValidation,
+  productCategoryValidation.handleValidationErrors,
+  productCategoryController.getProductCategoryBySlug
 );
 
-/**
- * GET /categories
- * List all categories with pagination
- */
 router.get(
   '/',
   authenticate,
-  categoryValidation.getCategoriesValidation,
-  categoryValidation.handleValidationErrors,
-  categoryController.getCategories
+  productCategoryValidation.getProductCategoriesValidation,
+  productCategoryValidation.handleValidationErrors,
+  productCategoryController.getProductCategories
 );
 
-/**
- * GET /categories/:id
- * Get category by ID
- */
 router.get(
   '/:id',
   authenticate,
-  categoryValidation.getCategoryByIdValidation,
-  categoryValidation.handleValidationErrors,
-  categoryController.getCategoryById
+  productCategoryValidation.getProductCategoryByIdValidation,
+  productCategoryValidation.handleValidationErrors,
+  productCategoryController.getProductCategoryById
 );
 
-/**
- * POST /categories
- * Create new category
- */
 router.post(
   '/',
   authenticate,
   authorize(['admin', 'editor']),
-  categoryValidation.createCategoryValidation,
-  categoryValidation.handleValidationErrors,
-  categoryController.createCategory
+  productCategoryValidation.createProductCategoryValidation,
+  productCategoryValidation.handleValidationErrors,
+  productCategoryController.createProductCategory
 );
 
-/**
- * PUT /categories/:id
- * Update category
- */
 router.put(
   '/:id',
   authenticate,
   authorize(['admin', 'editor']),
-  categoryValidation.updateCategoryValidation,
-  categoryValidation.handleValidationErrors,
-  categoryController.updateCategory
+  productCategoryValidation.updateProductCategoryValidation,
+  productCategoryValidation.handleValidationErrors,
+  productCategoryController.updateProductCategory
 );
 
-/**
- * DELETE /categories/:id
- * Delete category
- */
 router.delete(
   '/:id',
   authenticate,
   authorize(['admin']),
-  categoryValidation.deleteCategoryValidation,
-  categoryValidation.handleValidationErrors,
-  categoryController.deleteCategory
+  productCategoryValidation.deleteProductCategoryValidation,
+  productCategoryValidation.handleValidationErrors,
+  productCategoryController.deleteProductCategory
 );
 
 export default router;

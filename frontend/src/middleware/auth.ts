@@ -1,7 +1,7 @@
 ﻿import { defineMiddleware } from 'astro:middleware';
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { url, redirect, cookies } = context;
+  const { url } = context;
   
   // Protected routes that require authentication
   const protectedRoutes = ['/admin/dashboard', '/admin/posts', '/admin/products', '/admin/categories', '/admin/media', '/admin/reservations', '/admin/contacts', '/admin/users', '/admin/settings', '/admin/menus'];

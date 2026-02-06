@@ -1,9 +1,9 @@
 ﻿import { useState, useEffect } from 'react';
-import { usersApi } from '@/lib/api';
+import usersApi, { type User } from '@/lib/api/users';
 import Pagination from '@/components/ui/Pagination';
 
 export default function UserTable() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -22,8 +22,8 @@ export default function UserTable() {
       if (statusFilter) params.status = statusFilter;
 
       const response = await usersApi.getAll(params);
-      setUsers(response.data.items);
-      setTotalPages(response.data.pagination.totalPages);
+      setUsers(response.data);
+      setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error('Failed to load users:', error);
     } finally {
@@ -117,7 +117,7 @@ export default function UserTable() {
                         <div className="flex items-center gap-3">
                           {user.avatar ? (
                             <img
-                              src={user.avatar.thumbnail_url || user.avatar.url}
+                              src={user.avatar.thumbnail_path || user.avatar.path}
                               alt={user.full_name}
                               className="w-10 h-10 rounded-full object-cover"
                             />

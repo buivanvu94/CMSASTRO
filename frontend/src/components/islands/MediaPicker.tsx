@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { mediaApi } from '@/lib/api';
-import { $selectedMedia, selectMedia, clearSelection } from '@/stores/media';
+import type { Media } from '@/lib/api/media';
+import { $selectedMedia, toggleMediaSelection, clearSelectedMedia, setSelectedMedia } from '@/stores/media';
 import Modal from '@/components/ui/Modal';
 import Pagination from '@/components/ui/Pagination';
 
@@ -14,7 +15,7 @@ interface MediaPickerProps {
 }
 
 export default function MediaPicker({ isOpen, onClose, onSelect, multiple = false, accept = 'all' }: MediaPickerProps) {
-  const [media, setMedia] = useState<any[]>([]);
+  const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -25,7 +26,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, multiple = fals
   useEffect(() => {
     if (isOpen) {
       loadMedia();
-      clearSelection();
+      clearSelectedMedia();
     }
   }, [isOpen, page, search, folder]);
 
@@ -39,8 +40,8 @@ export default function MediaPicker({ isOpen, onClose, onSelect, multiple = fals
       if (accept !== 'all') params.type = accept;
 
       const response = await mediaApi.getAll(params);
-      setMedia(response.data.items);
-      setTotalPages(response.data.pagination.totalPages);
+      setMedia(response.data);
+      setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error('Failed to load media:', error);
     } finally {
@@ -48,12 +49,11 @@ export default function MediaPicker({ isOpen, onClose, onSelect, multiple = fals
     }
   };
 
-  const handleSelect = (item: any) => {
+  const handleSelect = (item: Media) => {
     if (multiple) {
-      selectMedia(item);
+      toggleMediaSelection(item);
     } else {
-      clearSelection();
-      selectMedia(item);
+      setSelectedMedia([item]);
     }
   };
 
@@ -71,7 +71,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, multiple = fals
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Select Media" size="large">
+    <Modal isOpen={isOpen} onClose={onClose} title="Select Media" size="xl">
       <div className="space-y-4 text-base">
         {/* Search and Filter */}
         <div className="flex gap-4">
@@ -109,9 +109,9 @@ export default function MediaPicker({ isOpen, onClose, onSelect, multiple = fals
                       : 'border-amber-400/10 hover:border-amber-400/40'
                   }`}
                 >
-                  {item.type === 'image' ? (
+                  {item.mime_type.startsWith('image/') ? (
                     <img
-                      src={item.thumbnail_url || item.url}
+                      src={item.thumbnail_path || item.path}
                       alt={item.alt_text || item.filename}
                       className="w-full h-32 object-cover"
                     />

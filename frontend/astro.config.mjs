@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
+import node from '@astrojs/node';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -15,8 +16,14 @@ export default defineConfig({
       applyBaseStyles: true,
     }),
   ],
-  output: 'static', // Static output (default in Astro v5, behaves like hybrid)
+  adapter: node({
+    mode: 'standalone',
+  }),
+  output: 'server',
   vite: {
+    build: {
+      cssCodeSplit: false,
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

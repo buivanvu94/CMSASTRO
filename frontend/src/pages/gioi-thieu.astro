@@ -1,0 +1,81 @@
+﻿---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { Image } from 'astro:assets';
+import seafoodAbout from '@/assets/images/seafood-about.jpg';
+
+export const prerender = true;
+---
+
+<SiteLayout title="Giới thiệu - Aurelian Seafood" description="Không gian nhà hàng hải sản cao cấp">
+  <section class="section-shell">
+      <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-[1.1fr_0.9fr] gap-12 items-center">
+        <div class="space-y-5">
+          <span class="badge">Về Aurelian</span>
+          <h1 class="text-4xl md:text-5xl">Giới thiệu nhà hàng hải sản sang trọng</h1>
+          <p class="text-slate-300">
+            Aurelian Seafood là không gian fine dining lấy cảm hứng từ đại dương, nơi hội tụ những đầu bếp
+            từ Pháp và châu Á, mang đến trải nghiệm ẩm thực thăng hoa.
+          </p>
+          <div class="grid grid-cols-2 gap-6 pt-4">
+            <div class="card-glass p-5">
+              <p class="text-sm text-amber-200/80">2016</p>
+              <p class="text-lg font-semibold">Thành lập</p>
+            </div>
+            <div class="card-glass p-5">
+              <p class="text-sm text-amber-200/80">25+</p>
+              <p class="text-lg font-semibold">Đầu bếp quốc tế</p>
+            </div>
+          </div>
+        </div>
+        <div class="image-frame">
+          <Image
+            src={seafoodAbout}
+            alt="Không gian nhà hàng"
+            class="w-full h-[420px] object-cover"
+            widths={[600, 900, 1200]}
+            sizes="(max-width: 1024px) 100vw, 48vw"
+            format="webp"
+            quality={72}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </div>
+  </section>
+
+  <section class="section-shell">
+      <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-3 gap-6">
+        <div class="card-glass p-6">
+          <h3 class="text-xl mb-2">Triết lý</h3>
+          <p class="text-slate-300">Tôn vinh hương vị tự nhiên, tối giản gia vị để nổi bật chất lượng hải sản.</p>
+        </div>
+        <div class="card-glass p-6">
+          <h3 class="text-xl mb-2">Nguồn hải sản</h3>
+          <p class="text-slate-300">Mỗi ngày nhập thẳng từ những vùng biển sạch, có truy xuất rõ ràng.</p>
+        </div>
+        <div class="card-glass p-6">
+          <h3 class="text-xl mb-2">Dịch vụ</h3>
+          <p class="text-slate-300">Bảo quản bàn, sinh nhật, kỷ niệm với setup sang trọng và cá nhân hóa.</p>
+        </div>
+      </div>
+  </section>
+
+  <section class="section-shell">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="card-glass p-10 grid md:grid-cols-2 gap-8">
+          <div>
+            <h2 class="text-3xl mb-3">Đội ngũ đầu bếp</h2>
+            <p class="text-slate-300">
+              Đội ngũ chef từng làm việc tại các nhà hàng 1-2 sao Michelin, kết hợp kỹ thuật Âu với
+              gia vị Á Đông, tạo nên những món signature độc đáo.
+            </p>
+          </div>
+          <ul class="space-y-3 text-slate-300">
+            <li>Chef de Cuisine: Pierre Lambert</li>
+            <li>Head Sommelier: Lý Minh Châu</li>
+            <li>Executive Chef: Nguyễn Tuấn Kiệt</li>
+          </ul>
+        </div>
+      </div>
+  </section>
+</SiteLayout>

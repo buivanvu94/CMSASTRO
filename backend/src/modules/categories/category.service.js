@@ -68,7 +68,6 @@ export const findAll = async ({
   page = 1,
   limit = 20,
   search = '',
-  type = null,
   status = null,
   parentId = null
 } = {}) => {
@@ -85,9 +84,7 @@ export const findAll = async ({
     ];
   }
   
-  if (type) {
-    where.type = type;
-  }
+  where.type = 'post';
   
   if (status) {
     where.status = status;
@@ -130,17 +127,11 @@ export const findAll = async ({
  * @param {string} type - Category type (post/product)
  * @returns {Promise<Array>} - Tree structure of categories
  */
-export const findTree = async (type = null) => {
-  const where = { parent_id: null };
-  if (type) {
-    where.type = type;
-  }
+export const findTree = async () => {
 
   const buildTree = async (parentId = null, depth = 0) => {
     const where = { parent_id: parentId };
-    if (type) {
-      where.type = type;
-    }
+    where.type = 'post';
 
     const categories = await Category.findAll({
       where,
@@ -198,6 +189,9 @@ export const findById = async (id) => {
   if (!category) {
     throw new NotFoundError('Category not found');
   }
+  if (category.type !== 'post') {
+    throw new NotFoundError('Category not found');
+  }
 
   return category;
 };
@@ -233,6 +227,9 @@ export const findBySlug = async (slug) => {
   if (!category) {
     throw new NotFoundError('Category not found');
   }
+  if (category.type !== 'post') {
+    throw new NotFoundError('Category not found');
+  }
 
   return category;
 };
@@ -243,6 +240,8 @@ export const findBySlug = async (slug) => {
  * @returns {Promise<Object>} - Created category
  */
 export const create = async (data) => {
+  data.type = 'post';
+
   // Generate slug if not provided
   if (!data.slug) {
     data.slug = await generateUniqueSlug(data.name);
@@ -279,6 +278,7 @@ export const create = async (data) => {
  */
 export const update = async (id, data) => {
   const category = await findById(id);
+  data.type = 'post';
 
   // Generate new slug if name changed
   if (data.name && data.name !== category.name && !data.slug) {
@@ -319,10 +319,7 @@ export const update = async (id, data) => {
       }
       
       // Validate type consistency
-      if (data.type && parent.type !== data.type) {
-        throw new ValidationError('Parent category must have the same type');
-      }
-      if (!data.type && parent.type !== category.type) {
+      if (parent.type !== 'post') {
         throw new ValidationError('Parent category must have the same type');
       }
     }

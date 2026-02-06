@@ -29,8 +29,7 @@ export default function UserForm({ userId }: UserFormProps) {
   const loadUser = async () => {
     try {
       setLoading(true);
-      const response = await usersApi.getById(userId!);
-      const user = response.data;
+      const user = await usersApi.getById(userId!);
       
       setFormData({
         full_name: user.full_name || '',
@@ -198,7 +197,7 @@ export default function UserForm({ userId }: UserFormProps) {
             {selectedAvatar ? (
               <div className="flex items-start gap-4">
                 <img
-                  src={selectedAvatar.thumbnail_url || selectedAvatar.url}
+                  src={selectedAvatar.thumbnail_path || selectedAvatar.path}
                   alt={selectedAvatar.alt_text}
                   className="w-24 h-24 object-cover rounded-full border border-gray-200"
                 />

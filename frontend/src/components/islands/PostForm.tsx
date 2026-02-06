@@ -31,11 +31,10 @@ export default function PostForm({ postId }: PostFormProps) {
     content: '',
     category_id: null as number | null,
     featured_image_id: null as number | null,
-    status: 'draft' as 'draft' | 'published',
+    status: 'draft' as 'draft' | 'published' | 'archived',
     is_featured: false,
-    meta_title: '',
-    meta_description: '',
-    meta_keywords: '',
+    seo_title: '',
+    seo_description: '',
   });
 
   useEffect(() => {
@@ -47,8 +46,8 @@ export default function PostForm({ postId }: PostFormProps) {
 
   const loadCategories = async () => {
     try {
-      const response = await categoriesApi.getAll({ limit: 1000 });
-      setCategories(response.data.items);
+      const response = await categoriesApi.getAll({ limit: 1000, type: 'post' });
+      setCategories(response.data);
     } catch (error) {
       console.error('Failed to load categories:', error);
     }
@@ -57,8 +56,7 @@ export default function PostForm({ postId }: PostFormProps) {
   const loadPost = async () => {
     try {
       setLoading(true);
-      const response = await postsApi.getById(postId!);
-      const post = response.data;
+      const post = await postsApi.getById(postId!);
       
       setFormData({
         title: post.title || '',
@@ -69,9 +67,8 @@ export default function PostForm({ postId }: PostFormProps) {
         featured_image_id: post.featured_image_id,
         status: post.status || 'draft',
         is_featured: post.is_featured || false,
-        meta_title: post.meta_title || '',
-        meta_description: post.meta_description || '',
-        meta_keywords: post.meta_keywords || '',
+        seo_title: post.seo_title || '',
+        seo_description: post.seo_description || '',
       });
 
       if (post.featuredImage) {
@@ -238,7 +235,7 @@ export default function PostForm({ postId }: PostFormProps) {
             {selectedImage ? (
               <div className="flex items-start gap-4">
                 <img
-                  src={selectedImage.thumbnail_url || selectedImage.url}
+                  src={selectedImage.thumbnail_path || selectedImage.path}
                   alt={selectedImage.alt_text}
                   className="w-32 h-32 object-cover rounded-lg border border-amber-400/20"
                 />
@@ -298,14 +295,14 @@ export default function PostForm({ postId }: PostFormProps) {
             </label>
             <input
               type="text"
-              name="meta_title"
-              value={formData.meta_title}
+              name="seo_title"
+              value={formData.seo_title}
               onChange={handleChange}
               maxLength={60}
               className={inputClass}
             />
             <p className={subtleTextClass}>
-              {formData.meta_title.length}/60 characters
+              {formData.seo_title.length}/60 characters
             </p>
           </div>
 
@@ -314,30 +311,18 @@ export default function PostForm({ postId }: PostFormProps) {
               Meta Description
             </label>
             <textarea
-              name="meta_description"
-              value={formData.meta_description}
+              name="seo_description"
+              value={formData.seo_description}
               onChange={handleChange}
               rows={3}
               maxLength={160}
               className={textareaClass}
             />
             <p className={subtleTextClass}>
-              {formData.meta_description.length}/160 characters
+              {formData.seo_description.length}/160 characters
             </p>
           </div>
 
-          <div>
-            <label className={labelClass}>
-              Meta Keywords
-            </label>
-            <input
-              type="text"
-              name="meta_keywords"
-              value={formData.meta_keywords}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
         </div>
 
         {/* Actions */}

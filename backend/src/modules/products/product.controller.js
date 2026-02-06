@@ -41,6 +41,34 @@ export const getProducts = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Get public products for website pages
+ * GET /products/public
+ */
+export const getPublicProducts = asyncHandler(async (req, res) => {
+  const { page, limit, search, productCategoryId, categoryId, isFeatured } = req.query;
+
+  const result = await productService.findAll({
+    page: parseInt(page, 10) || 1,
+    limit: parseInt(limit, 10) || 12,
+    search,
+    productCategoryId: productCategoryId
+      ? parseInt(productCategoryId, 10)
+      : (categoryId ? parseInt(categoryId, 10) : null),
+    status: 'published',
+    isFeatured: isFeatured !== undefined ? isFeatured === 'true' : null
+  });
+
+  return paginatedResponse(
+    res,
+    result.products,
+    result.total,
+    result.page,
+    result.limit,
+    'Public products retrieved successfully'
+  );
+});
+
+/**
  * Get product by ID
  * GET /products/:id
  */
@@ -151,6 +179,7 @@ export const getStats = asyncHandler(async (req, res) => {
 
 export default {
   getProducts,
+  getPublicProducts,
   getProductById,
   getProductBySlug,
   createProduct,

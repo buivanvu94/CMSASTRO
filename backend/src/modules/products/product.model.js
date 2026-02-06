@@ -122,22 +122,28 @@ const Product = sequelize.define('Product', {
   updatedAt: 'updated_at',
   indexes: [
     {
+      name: 'idx_products_slug_unique',
       fields: ['slug'],
       unique: true
     },
     {
+      name: 'idx_products_product_category_id',
       fields: ['product_category_id']
     },
     {
+      name: 'idx_products_status',
       fields: ['status']
     },
     {
+      name: 'idx_products_is_featured',
       fields: ['is_featured']
     },
     {
+      name: 'idx_products_sort_order',
       fields: ['sort_order']
     },
     {
+      name: 'idx_products_created_at',
       fields: ['created_at']
     }
   ]

@@ -1,11 +1,10 @@
 import { useStore } from '@nanostores/react';
 import { $user } from '@/stores/auth';
-import { $isSidebarOpen, toggleSidebar } from '@/stores/ui';
+import { toggleSidebar } from '@/stores/ui';
 import Dropdown from '@/components/ui/Dropdown';
 
 export default function Header() {
   const user = useStore($user);
-  const isSidebarOpen = useStore($isSidebarOpen);
 
   const handleLogout = async () => {
     const { authApi, clearTokens } = await import('@/lib/api');

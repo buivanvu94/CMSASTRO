@@ -26,6 +26,17 @@ const slugExists = async (slug, excludeId = null) => {
   return count > 0;
 };
 
+const validatePostCategory = async (categoryId) => {
+  if (!categoryId) {
+    return;
+  }
+
+  const category = await Category.findByPk(categoryId);
+  if (!category || category.type !== 'post') {
+    throw new ValidationError('Post category not found');
+  }
+};
+
 /**
  * Find all posts with pagination, filtering, and role-based access
  * @param {Object} options - Query options
@@ -184,6 +195,8 @@ export const findBySlug = async (slug) => {
  * @returns {Promise<Object>} - Created post
  */
 export const create = async (data, authorId) => {
+  await validatePostCategory(data.category_id);
+
   // Generate unique slug from title
   const slug = await generateSlugFromTitle(data.title, slugExists);
 
@@ -211,6 +224,10 @@ export const update = async (id, data, user) => {
   // Check ownership (authors can only edit their own posts)
   if (user.role === 'author' && post.author_id !== user.id) {
     throw new ValidationError('You can only edit your own posts');
+  }
+
+  if (Object.prototype.hasOwnProperty.call(data, 'category_id')) {
+    await validatePostCategory(data.category_id);
   }
 
   // Regenerate slug if title changes and no custom slug provided

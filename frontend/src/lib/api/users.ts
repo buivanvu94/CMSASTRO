@@ -13,8 +13,8 @@ export interface User {
     path: string;
     thumbnail_path: string | null;
   };
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CreateUserData {

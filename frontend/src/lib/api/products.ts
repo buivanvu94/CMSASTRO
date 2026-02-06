@@ -15,7 +15,7 @@ export interface ProductPrice {
 
 export interface Product {
   id: number;
-  category_id: number | null;
+  product_category_id: number | null;
   name: string;
   slug: string;
   description: string | null;
@@ -44,7 +44,7 @@ export interface Product {
 }
 
 export interface CreateProductData {
-  category_id?: number | null;
+  product_category_id?: number | null;
   name: string;
   slug?: string;
   description?: string;
@@ -66,7 +66,7 @@ export interface CreateProductData {
 }
 
 export interface UpdateProductData {
-  category_id?: number | null;
+  product_category_id?: number | null;
   name?: string;
   slug?: string;
   description?: string;
@@ -84,7 +84,7 @@ export interface ProductListParams {
   page?: number;
   limit?: number;
   search?: string;
-  category_id?: number;
+  productCategoryId?: number;
   status?: 'draft' | 'published' | 'archived';
   is_featured?: boolean;
 }

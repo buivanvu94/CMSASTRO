@@ -3,6 +3,10 @@
 const adminPublicRoutes = ['/admin/login', '/admin/forgot-password', '/admin/reset-password'];
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  if (context.isPrerendered) {
+    return next();
+  }
+
   const { url, cookies, redirect } = context;
   const pathname = url.pathname;
   const accessToken = cookies.get('access_token')?.value;

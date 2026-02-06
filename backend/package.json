@@ -12,6 +12,8 @@
     "db:sync": "node force-sync-db.js",
     "db:reset": "node reset-database.js",
     "db:indexes": "node src/migrations/add-indexes.js",
+    "db:dedup-indexes": "node src/migrations/deduplicate-indexes.js",
+    "db:split-product-categories": "node src/migrations/split-product-categories.js",
     "lint": "eslint src/**/*.js",
     "format": "prettier --write src/**/*.js"
   },

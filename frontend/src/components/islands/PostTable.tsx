@@ -1,7 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { useStore } from '@nanostores/react';
 import { postsApi } from '@/lib/api';
-import { $user } from '@/stores/auth';
 import Pagination from '@/components/ui/Pagination';
 
 export default function PostTable() {
@@ -11,8 +9,7 @@ export default function PostTable() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const user = useStore($user);
+  const [categoryFilter] = useState('');
 
   useEffect(() => {
     loadPosts();

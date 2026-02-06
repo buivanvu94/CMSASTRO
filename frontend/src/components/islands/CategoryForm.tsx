@@ -29,9 +29,8 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
     description: '',
     parent_id: null as number | null,
     image_id: null as number | null,
-    meta_title: '',
-    meta_description: '',
-    meta_keywords: '',
+    seo_title: '',
+    seo_description: '',
   });
 
   useEffect(() => {
@@ -43,8 +42,8 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
 
   const loadCategories = async () => {
     try {
-      const response = await categoriesApi.getAll({ limit: 1000 });
-      setCategories(response.data.filter((c: any) => c.id !== categoryId));
+      const response = await categoriesApi.getAll({ limit: 1000, type: 'post' });
+      setCategories((response.data || []).filter((c: any) => c.id !== categoryId));
     } catch (error) {
       console.error('Failed to load categories:', error);
     }
@@ -62,9 +61,8 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
         description: category.description || '',
         parent_id: category.parent_id,
         image_id: category.image_id,
-        meta_title: category.meta_title || '',
-        meta_description: category.meta_description || '',
-        meta_keywords: category.meta_keywords || '',
+        seo_title: category.seo_title || '',
+        seo_description: category.seo_description || '',
       });
 
       if (category.image) {
@@ -104,10 +102,10 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
       setLoading(true);
       
       if (categoryId) {
-        await categoriesApi.update(categoryId, formData);
+        await categoriesApi.update(categoryId, { ...formData, type: 'post' });
         alert('Category updated successfully');
       } else {
-        await categoriesApi.create(formData);
+        await categoriesApi.create({ ...formData, type: 'post' });
         alert('Category created successfully');
         window.location.href = '/admin/categories';
       }
@@ -249,14 +247,14 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
             </label>
             <input
               type="text"
-              name="meta_title"
-              value={formData.meta_title}
+              name="seo_title"
+              value={formData.seo_title}
               onChange={handleChange}
               maxLength={60}
               className={inputClass}
             />
             <p className={subtleTextClass}>
-              {formData.meta_title.length}/60 characters
+              {formData.seo_title.length}/60 characters
             </p>
           </div>
 
@@ -265,32 +263,18 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
               Meta Description
             </label>
             <textarea
-              name="meta_description"
-              value={formData.meta_description}
+              name="seo_description"
+              value={formData.seo_description}
               onChange={handleChange}
               rows={3}
               maxLength={160}
               className={textareaClass}
             />
             <p className={subtleTextClass}>
-              {formData.meta_description.length}/160 characters
+              {formData.seo_description.length}/160 characters
             </p>
           </div>
 
-          <div>
-            <label className={labelClass}>
-              Meta Keywords
-            </label>
-            <input
-              type="text"
-              name="meta_keywords"
-              value={formData.meta_keywords}
-              onChange={handleChange}
-              placeholder="keyword1, keyword2, keyword3"
-              className={inputClass}
-            />
-            <p className={subtleTextClass}>Separate keywords with commas for better search targeting</p>
-          </div>
         </div>
 
         {/* Actions */}

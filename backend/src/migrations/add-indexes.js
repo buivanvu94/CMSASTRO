@@ -31,6 +31,13 @@ async function addIndexes() {
     await queryInterface.addIndex('categories', ['parent_id'], {
       name: 'idx_categories_parent_id',
     });
+    await queryInterface.addIndex('product_categories', ['slug'], {
+      name: 'idx_product_categories_slug',
+      unique: true,
+    });
+    await queryInterface.addIndex('product_categories', ['parent_id'], {
+      name: 'idx_product_categories_parent_id',
+    });
 
     // Posts table indexes
     await queryInterface.addIndex('posts', ['slug'], {
@@ -55,8 +62,8 @@ async function addIndexes() {
       name: 'idx_products_slug',
       unique: true,
     });
-    await queryInterface.addIndex('products', ['category_id'], {
-      name: 'idx_products_category_id',
+    await queryInterface.addIndex('products', ['product_category_id'], {
+      name: 'idx_products_product_category_id',
     });
     await queryInterface.addIndex('products', ['status'], {
       name: 'idx_products_status',
@@ -139,7 +146,9 @@ async function removeIndexes() {
     { table: 'posts', name: 'idx_posts_status' },
     { table: 'posts', name: 'idx_posts_published_at' },
     { table: 'products', name: 'idx_products_slug' },
-    { table: 'products', name: 'idx_products_category_id' },
+    { table: 'product_categories', name: 'idx_product_categories_slug' },
+    { table: 'product_categories', name: 'idx_product_categories_parent_id' },
+    { table: 'products', name: 'idx_products_product_category_id' },
     { table: 'products', name: 'idx_products_status' },
     { table: 'media', name: 'idx_media_type' },
     { table: 'media', name: 'idx_media_folder' },

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { mediaApi, type Media } from '@/lib/api';
+import mediaApi, { type Media } from '@/lib/api/media';
 import Pagination from '@/components/ui/Pagination';
 
 interface MediaLibraryProps {

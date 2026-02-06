@@ -4,7 +4,7 @@ import sequelize from '../../../config/database.js';
 import { setupAssociations } from '../../../config/associations.js';
 import Product from '../product.model.js';
 import ProductPrice from '../product-price.model.js';
-import Category from '../../categories/category.model.js';
+import ProductCategory from '../../product-categories/product-category.model.js';
 import * as productService from '../product.service.js';
 
 /**
@@ -22,7 +22,7 @@ describe('Product Default Price - Property Tests', () => {
   beforeEach(async () => {
     await ProductPrice.destroy({ where: {}, truncate: true, cascade: true });
     await Product.destroy({ where: {}, truncate: true, cascade: true });
-    await Category.destroy({ where: {}, truncate: true, cascade: true });
+    await ProductCategory.destroy({ where: {}, truncate: true, cascade: true });
   });
 
   afterAll(async () => {
@@ -162,3 +162,4 @@ describe('Product Default Price - Property Tests', () => {
     }, 30000);
   });
 });
+

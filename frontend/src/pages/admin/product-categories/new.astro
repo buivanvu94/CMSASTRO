@@ -1,0 +1,17 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import ProductCategoryForm from '@/components/islands/ProductCategoryForm';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="New Product Category - CMS Admin">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-100 via-yellow-300 to-amber-200 bg-clip-text text-transparent">Create New Product Category</h1>
+      <p class="mt-2 text-base text-amber-200/70">Create and configure a new product category node</p>
+    </div>
+
+    <ProductCategoryForm client:load />
+  </div>
+</DashboardLayout>

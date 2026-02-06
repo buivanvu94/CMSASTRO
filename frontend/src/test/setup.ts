@@ -17,13 +17,13 @@ const localStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-global.localStorage = localStorageMock as any;
+globalThis.localStorage = localStorageMock as any;
 
 // Mock window.alert
-global.alert = vi.fn();
+globalThis.alert = vi.fn();
 
 // Mock window.confirm
-global.confirm = vi.fn(() => true);
+globalThis.confirm = vi.fn(() => true);
 
 // Mock window.location
 delete (window as any).location;

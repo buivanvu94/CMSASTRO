@@ -1,4 +1,4 @@
-import * as categoryService from './category.service.js';
+import * as productCategoryService from './product-category.service.js';
 import {
   successResponse,
   createdResponse,
@@ -7,23 +7,13 @@ import {
 } from '../../utils/response.js';
 import { asyncHandler } from '../../middlewares/errorHandler.js';
 
-/**
- * Category Controller
- * Handles HTTP requests for category management
- */
+export const getProductCategories = asyncHandler(async (req, res) => {
+  const { page, limit, search, status, parentId } = req.query;
 
-/**
- * Get all categories with pagination
- * GET /categories
- */
-export const getCategories = asyncHandler(async (req, res) => {
-  const { page, limit, search, type, status, parentId } = req.query;
-
-  const result = await categoryService.findAll({
+  const result = await productCategoryService.findAll({
     page: parseInt(page) || 1,
     limit: parseInt(limit) || 20,
     search,
-    type,
     status,
     parentId: parentId ? parseInt(parentId) : null
   });
@@ -34,85 +24,53 @@ export const getCategories = asyncHandler(async (req, res) => {
     result.total,
     result.page,
     result.limit,
-    'Categories retrieved successfully'
+    'Product categories retrieved successfully'
   );
 });
 
-/**
- * Get categories in tree structure
- * GET /categories/tree
- */
-export const getCategoryTree = asyncHandler(async (req, res) => {
-  const { type } = req.query;
-  const tree = await categoryService.findTree(type);
+export const getProductCategoryTree = asyncHandler(async (req, res) => {
+  const tree = await productCategoryService.findTree();
 
-  return successResponse(res, tree, 'Category tree retrieved successfully');
+  return successResponse(res, tree, 'Product category tree retrieved successfully');
 });
 
-/**
- * Get category by ID
- * GET /categories/:id
- */
-export const getCategoryById = asyncHandler(async (req, res) => {
+export const getProductCategoryById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const category = await categoryService.findById(parseInt(id));
+  const category = await productCategoryService.findById(parseInt(id));
 
-  return successResponse(res, category, 'Category retrieved successfully');
+  return successResponse(res, category, 'Product category retrieved successfully');
 });
 
-/**
- * Get category by slug
- * GET /categories/slug/:slug
- */
-export const getCategoryBySlug = asyncHandler(async (req, res) => {
+export const getProductCategoryBySlug = asyncHandler(async (req, res) => {
   const { slug } = req.params;
-  const category = await categoryService.findBySlug(slug);
+  const category = await productCategoryService.findBySlug(slug);
 
-  return successResponse(res, category, 'Category retrieved successfully');
+  return successResponse(res, category, 'Product category retrieved successfully');
 });
 
-/**
- * Create new category
- * POST /categories
- */
-export const createCategory = asyncHandler(async (req, res) => {
-  const data = req.body;
-  const category = await categoryService.create(data);
+export const createProductCategory = asyncHandler(async (req, res) => {
+  const category = await productCategoryService.create(req.body);
 
-  return createdResponse(res, category, 'Category created successfully');
+  return createdResponse(res, category, 'Product category created successfully');
 });
 
-/**
- * Update category
- * PUT /categories/:id
- */
-export const updateCategory = asyncHandler(async (req, res) => {
+export const updateProductCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const data = req.body;
+  const category = await productCategoryService.update(parseInt(id), req.body);
 
-  const category = await categoryService.update(parseInt(id), data);
-
-  return successResponse(res, category, 'Category updated successfully');
+  return successResponse(res, category, 'Product category updated successfully');
 });
 
-/**
- * Delete category
- * DELETE /categories/:id
- */
-export const deleteCategory = asyncHandler(async (req, res) => {
+export const deleteProductCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  await categoryService.deleteCategory(parseInt(id));
+  await productCategoryService.deleteCategory(parseInt(id));
 
   return noContentResponse(res);
 });
 
-/**
- * Reorder categories
- * PUT /categories/reorder
- */
-export const reorderCategories = asyncHandler(async (req, res) => {
+export const reorderProductCategories = asyncHandler(async (req, res) => {
   const { items } = req.body;
-  
+
   if (!items || !Array.isArray(items)) {
     return res.status(400).json({
       success: false,
@@ -120,29 +78,25 @@ export const reorderCategories = asyncHandler(async (req, res) => {
     });
   }
 
-  await categoryService.reorder(items);
+  await productCategoryService.reorder(items);
 
-  return successResponse(res, null, 'Categories reordered successfully');
+  return successResponse(res, null, 'Product categories reordered successfully');
 });
 
-/**
- * Get category statistics
- * GET /categories/stats
- */
 export const getStats = asyncHandler(async (req, res) => {
-  const stats = await categoryService.getStats();
+  const stats = await productCategoryService.getStats();
 
   return successResponse(res, stats, 'Statistics retrieved successfully');
 });
 
 export default {
-  getCategories,
-  getCategoryTree,
-  getCategoryById,
-  getCategoryBySlug,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-  reorderCategories,
+  getProductCategories,
+  getProductCategoryTree,
+  getProductCategoryById,
+  getProductCategoryBySlug,
+  createProductCategory,
+  updateProductCategory,
+  deleteProductCategory,
+  reorderProductCategories,
   getStats
 };

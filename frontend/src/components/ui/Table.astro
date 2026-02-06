@@ -51,7 +51,7 @@ const classes = `${baseClasses} ${borderedClass} ${className}`;
   }
 </style>
 
-<script define:vars={{ striped, hoverable }}>
+<script is:inline define:vars={{ striped, hoverable }}>
   // Add classes dynamically based on props
   const table = document.currentScript?.previousElementSibling?.querySelector('table');
   if (table) {

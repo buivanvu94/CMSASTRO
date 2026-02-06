@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { settingsApi } from '@/lib/api';
+import type { Setting } from '@/lib/api/settings';
 
 export default function SettingsForm() {
-  const [settings, setSettings] = useState<any[]>([]);
+  const [settings, setSettings] = useState<Setting[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editedSettings, setEditedSettings] = useState<Record<string, string>>({});
@@ -15,11 +16,11 @@ export default function SettingsForm() {
     try {
       setLoading(true);
       const response = await settingsApi.getAll();
-      setSettings(response.data);
+      setSettings(response);
       
       const initial: Record<string, string> = {};
-      response.data.forEach((setting: any) => {
-        initial[setting.key] = setting.value;
+      response.forEach((setting) => {
+        initial[setting.key] = setting.value || '';
       });
       setEditedSettings(initial);
     } catch (error) {
@@ -38,7 +39,13 @@ export default function SettingsForm() {
     
     try {
       setSaving(true);
-      await settingsApi.update(editedSettings);
+      await settingsApi.update({
+        settings: settings.map((setting) => ({
+          key: setting.key,
+          value: editedSettings[setting.key] || '',
+          group: setting.group,
+        })),
+      });
       alert('Settings updated successfully');
       await loadSettings();
     } catch (error: any) {
@@ -55,7 +62,7 @@ export default function SettingsForm() {
     }
     acc[setting.group].push(setting);
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {} as Record<string, Setting[]>);
 
   if (loading) {
     return (

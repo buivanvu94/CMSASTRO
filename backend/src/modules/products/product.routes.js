@@ -46,6 +46,17 @@ router.get(
 );
 
 /**
+ * GET /products/public
+ * Public list for frontend pages (published products only)
+ */
+router.get(
+  '/public',
+  productValidation.getProductsValidation,
+  productValidation.handleValidationErrors,
+  productController.getPublicProducts
+);
+
+/**
  * GET /products/:id
  * Get product by ID
  */

@@ -6,7 +6,7 @@ interface Category {
   name: string;
   slug: string;
   parent_id: number | null;
-  order: number;
+  sort_order: number;
   children?: Category[];
 }
 
@@ -30,7 +30,7 @@ export default function CategoryTree() {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const response = await categoriesApi.getTree();
+      const response = await categoriesApi.getTree('post');
       setCategories(response);
     } catch (error) {
       console.error('Failed to load categories:', error);

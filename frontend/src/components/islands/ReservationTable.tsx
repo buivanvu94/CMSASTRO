@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { reservationsApi } from '@/lib/api';
+import reservationsApi, { type Reservation } from '@/lib/api/reservations';
 import Pagination from '@/components/ui/Pagination';
 
 export default function ReservationTable() {
-  const [reservations, setReservations] = useState<any[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -20,8 +20,8 @@ export default function ReservationTable() {
       if (statusFilter) params.status = statusFilter;
 
       const response = await reservationsApi.getAll(params);
-      setReservations(response.data.items);
-      setTotalPages(response.data.pagination.totalPages);
+      setReservations(response.data);
+      setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error('Failed to load reservations:', error);
     } finally {
@@ -29,9 +29,9 @@ export default function ReservationTable() {
     }
   };
 
-  const handleStatusUpdate = async (id: number, status: string) => {
+  const handleStatusUpdate = async (id: number, status: Reservation['status']) => {
     try {
-      await reservationsApi.updateStatus(id, status);
+      await reservationsApi.updateStatus(id, { status });
       await loadReservations();
     } catch (error: any) {
       console.error('Failed to update status:', error);
@@ -116,12 +116,14 @@ export default function ReservationTable() {
                         <div>{reservation.customer_email}</div>
                         <div className="text-sm text-amber-200/70">{reservation.customer_phone}</div>
                       </td>
-                      <td className="px-6 py-4 text-base text-zinc-200">{formatDate(reservation.reservation_date)}</td>
+                      <td className="px-6 py-4 text-base text-zinc-200">
+                        {formatDate(`${reservation.date}T${reservation.time}`)}
+                      </td>
                       <td className="px-6 py-4 text-base text-zinc-200">{reservation.party_size} people</td>
                       <td className="px-6 py-4">
                         <select
                           value={reservation.status}
-                          onChange={(e) => handleStatusUpdate(reservation.id, e.target.value)}
+                          onChange={(e) => handleStatusUpdate(reservation.id, e.target.value as Reservation['status'])}
                           className={`text-sm font-semibold rounded-full px-3 py-2 outline-none ${getStatusBadge(reservation.status)}`}
                         >
                           <option value="pending">Pending</option>

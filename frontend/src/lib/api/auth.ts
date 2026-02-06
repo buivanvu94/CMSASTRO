@@ -43,7 +43,7 @@ const authApi = {
     const response = await apiClient.post('/auth/login', credentials);
     console.log('📦 [AUTH API] Raw response:', response.data);
     
-    const { accessToken, refreshToken, user } = response.data.data;
+    const { accessToken, refreshToken } = response.data.data;
     console.log('🔑 [AUTH API] Extracted tokens - Access:', accessToken ? 'Yes' : 'No', 'Refresh:', refreshToken ? 'Yes' : 'No');
     
     // Store tokens

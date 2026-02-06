@@ -1,12 +1,5 @@
 import { body, param, query, validationResult } from 'express-validator';
 
-/**
- * Category Validation Rules
- */
-
-/**
- * Handle validation errors
- */
 export const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -19,10 +12,7 @@ export const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-/**
- * Validation for getting categories
- */
-export const getCategoriesValidation = [
+export const getProductCategoriesValidation = [
   query('page')
     .optional()
     .isInt({ min: 1 })
@@ -31,10 +21,6 @@ export const getCategoriesValidation = [
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('Limit must be between 1 and 100'),
-  query('type')
-    .optional()
-    .isIn(['post', 'product'])
-    .withMessage('Type must be either post or product'),
   query('status')
     .optional()
     .isIn(['active', 'inactive'])
@@ -45,29 +31,15 @@ export const getCategoriesValidation = [
     .withMessage('Parent ID must be an integer')
 ];
 
-/**
- * Validation for getting category tree
- */
-export const getCategoryTreeValidation = [
-  query('type')
-    .optional()
-    .isIn(['post', 'product'])
-    .withMessage('Type must be either post or product')
-];
+export const getProductCategoryTreeValidation = [];
 
-/**
- * Validation for getting category by ID
- */
-export const getCategoryByIdValidation = [
+export const getProductCategoryByIdValidation = [
   param('id')
     .isInt({ min: 1 })
     .withMessage('Category ID must be a positive integer')
 ];
 
-/**
- * Validation for getting category by slug
- */
-export const getCategoryBySlugValidation = [
+export const getProductCategoryBySlugValidation = [
   param('slug')
     .notEmpty()
     .withMessage('Slug is required')
@@ -75,10 +47,7 @@ export const getCategoryBySlugValidation = [
     .withMessage('Slug must be lowercase alphanumeric with hyphens')
 ];
 
-/**
- * Validation for creating category
- */
-export const createCategoryValidation = [
+export const createProductCategoryValidation = [
   body('name')
     .trim()
     .notEmpty()
@@ -101,10 +70,6 @@ export const createCategoryValidation = [
     .optional()
     .isInt({ min: 1 })
     .withMessage('Image ID must be a positive integer'),
-  body('type')
-    .optional()
-    .isIn(['post', 'product'])
-    .withMessage('Type must be either post or product'),
   body('sort_order')
     .optional()
     .isInt({ min: 0 })
@@ -125,10 +90,7 @@ export const createCategoryValidation = [
     .withMessage('SEO description must not exceed 160 characters')
 ];
 
-/**
- * Validation for updating category
- */
-export const updateCategoryValidation = [
+export const updateProductCategoryValidation = [
   param('id')
     .isInt({ min: 1 })
     .withMessage('Category ID must be a positive integer'),
@@ -155,10 +117,6 @@ export const updateCategoryValidation = [
     .optional()
     .custom((value) => value === null || (Number.isInteger(value) && value > 0))
     .withMessage('Image ID must be null or a positive integer'),
-  body('type')
-    .optional()
-    .isIn(['post', 'product'])
-    .withMessage('Type must be either post or product'),
   body('sort_order')
     .optional()
     .isInt({ min: 0 })
@@ -179,19 +137,13 @@ export const updateCategoryValidation = [
     .withMessage('SEO description must not exceed 160 characters')
 ];
 
-/**
- * Validation for deleting category
- */
-export const deleteCategoryValidation = [
+export const deleteProductCategoryValidation = [
   param('id')
     .isInt({ min: 1 })
     .withMessage('Category ID must be a positive integer')
 ];
 
-/**
- * Validation for reordering categories
- */
-export const reorderCategoriesValidation = [
+export const reorderProductCategoriesValidation = [
   body('items')
     .isArray({ min: 1 })
     .withMessage('Items must be a non-empty array'),
@@ -209,12 +161,12 @@ export const reorderCategoriesValidation = [
 
 export default {
   handleValidationErrors,
-  getCategoriesValidation,
-  getCategoryTreeValidation,
-  getCategoryByIdValidation,
-  getCategoryBySlugValidation,
-  createCategoryValidation,
-  updateCategoryValidation,
-  deleteCategoryValidation,
-  reorderCategoriesValidation
+  getProductCategoriesValidation,
+  getProductCategoryTreeValidation,
+  getProductCategoryByIdValidation,
+  getProductCategoryBySlugValidation,
+  createProductCategoryValidation,
+  updateProductCategoryValidation,
+  deleteProductCategoryValidation,
+  reorderProductCategoriesValidation
 };

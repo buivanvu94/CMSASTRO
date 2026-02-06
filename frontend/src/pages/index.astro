@@ -1,22 +1,244 @@
----
-import BaseLayout from '@/layouts/BaseLayout.astro';
+﻿---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { Image } from 'astro:assets';
+import type { Product, ProductPrice } from '@/lib/api/products';
+import seafoodHero from '@/assets/images/seafood-hero.jpg';
+import seafoodRoom from '@/assets/images/seafood-room.jpg';
+import seafoodAbout from '@/assets/images/seafood-about.jpg';
 
 export const prerender = false;
+
+interface HomeProductItem {
+  id: string;
+  name: string;
+  desc: string;
+  price: string;
+  imageUrl: string;
+}
+
+const apiBaseUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const uploadsBaseUrl = apiBaseUrl.replace(/\/api\/v\d+\/?$/, '');
+const fallbackImages = [seafoodHero.src, seafoodRoom.src, seafoodAbout.src];
+
+const formatCurrencyVnd = (value: number): string => {
+  return `${new Intl.NumberFormat('vi-VN').format(value)} VND`;
+};
+
+const toAbsoluteImageUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${uploadsBaseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
+const pickDefaultPrice = (prices: ProductPrice[] | undefined): number | null => {
+  if (!prices || prices.length === 0) return null;
+  const activePrices = prices.filter((price) => price.status === 'active');
+  const defaultPrice = activePrices.find((price) => price.is_default) || activePrices[0];
+  if (!defaultPrice) return null;
+  const value = defaultPrice.sale_price ?? defaultPrice.price;
+  return Number(value);
+};
+
+const normalizeDesc = (description: string | null | undefined): string => {
+  if (!description) return 'Hương vị hải sản cao cấp theo phong cách hoàng gia.';
+  return description.length > 95 ? `${description.slice(0, 95).trim()}...` : description;
+};
+
+const fetchHomeProducts = async (): Promise<HomeProductItem[]> => {
+  try {
+    const response = await fetch(`${apiBaseUrl}/products/public?page=1&limit=12`, {
+      headers: { accept: 'application/json' }
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json();
+    const products: Product[] = Array.isArray(payload?.data) ? payload.data : [];
+
+    return products.map((product, index) => {
+      const priceValue = pickDefaultPrice(product.prices);
+      const imageUrl = toAbsoluteImageUrl(product.featuredImage?.thumbnail_path)
+        || toAbsoluteImageUrl(product.featuredImage?.path)
+        || fallbackImages[index % fallbackImages.length];
+      const shortDescription = product.short_description || product.description;
+
+      return {
+        id: String(index + 1).padStart(2, '0'),
+        name: product.name,
+        desc: normalizeDesc(shortDescription),
+        price: priceValue !== null ? formatCurrencyVnd(priceValue) : 'Liên hệ',
+        imageUrl
+      };
+    });
+  } catch {
+    return [];
+  }
+};
+
+const menuItems = await fetchHomeProducts();
 ---
 
-<BaseLayout title="Trang chủ">
-  <main class="min-h-screen grid place-items-center p-8 text-center">
-    <div>
-      <h1 class="text-3xl font-semibold mb-3">Trang chủ website</h1>
-      <p class="mb-4 text-gray-600">
-        Đây là phần public tại <code>/</code>. Khu vực quản trị nằm ở <code>/admin</code>.
-      </p>
-      <a
-        href="/admin"
-        class="inline-block px-4 py-2 rounded-lg bg-black text-white no-underline hover:opacity-90 transition-opacity"
-      >
-        Vào trang quản trị
-      </a>
+<SiteLayout title="Aurelian Seafood" description="Nhà hàng hải sản cao cấp">
+  <section class="relative overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-10 right-0 w-72 h-72 bg-teal-400/20 rounded-full blur-3xl"></div>
+
+    <div class="max-w-6xl mx-auto px-6 pb-20 pt-20 grid lg:grid-cols-[1.1fr_0.9fr] gap-12 items-center">
+      <div class="space-y-6">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl leading-tight fade-up delay-1 hero-title-gradient">
+          Tinh hoa hải sản, phong cách hoàng gia
+        </h1>
+        <p class="text-lg text-slate-200/80 fade-up delay-2">
+          Từ những khu nước trong lành, Aurelian chọn lọc hải sản tươi sống và chế biến theo phong cách fine dining.
+        </p>
+        <div class="flex flex-wrap gap-4 fade-up delay-3">
+          <a class="btn-primary" href="/lien-he">Đặt bàn ngay</a>
+          <a class="btn-outline" href="/gioi-thieu">Không gian</a>
+        </div>
+        <div class="grid grid-cols-3 gap-4 pt-8">
+          <div>
+            <p class="text-2xl font-semibold">50+</p>
+            <p class="text-sm text-slate-300">Món signature</p>
+          </div>
+          <div>
+            <p class="text-2xl font-semibold">12</p>
+            <p class="text-sm text-slate-300">Bộ sưu tập rượu</p>
+          </div>
+          <div>
+            <p class="text-2xl font-semibold">4.9</p>
+            <p class="text-sm text-slate-300">Đánh giá</p>
+          </div>
+        </div>
+      </div>
+      <div class="relative">
+        <div class="image-frame">
+          <Image
+            src={seafoodHero}
+            alt="Fine dining seafood"
+            class="w-full h-[420px] object-cover"
+            widths={[600, 900, 1200]}
+            sizes="(max-width: 1024px) 100vw, 48vw"
+            format="webp"
+            quality={72}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </div>
+        <div class="card-glass p-5 absolute -bottom-10 right-6 w-64">
+          <p class="text-sm text-slate-300">Chef special</p>
+          <p class="text-lg font-semibold">King crab in saffron broth</p>
+          <p class="text-sm text-amber-200">1.250.000 VND</p>
+        </div>
+      </div>
     </div>
-  </main>
-</BaseLayout>
+  </section>
+
+  <section class="section-shell">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid lg:grid-cols-3 gap-6">
+          <div class="card-glass p-6 fade-up">
+            <h3 class="text-xl mb-2">Nguồn nguyên liệu</h3>
+            <p class="text-slate-300">Hải sản từ Phú Quốc, Nha Trang, quốc tế, tuyển chọn mỗi sáng.</p>
+          </div>
+          <div class="card-glass p-6 fade-up delay-1">
+            <h3 class="text-xl mb-2">Không gian</h3>
+            <p class="text-slate-300">Phòng ăn riêng, quầy bar ngọc trai, view hồ nước tự nhiên.</p>
+          </div>
+          <div class="card-glass p-6 fade-up delay-2">
+            <h3 class="text-xl mb-2">Trải nghiệm</h3>
+            <p class="text-slate-300">Service 1-1, pairing rượu vang chuẩn nhà hàng Michelin.</p>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-shell">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+        <div>
+          <p class="text-sm text-amber-200/80 tracking-[0.25em] uppercase">Signature</p>
+          <h2 class="section-title">Thực đơn biểu tượng</h2>
+          <p class="section-subtitle">12 món tuyển chọn theo chuẩn fine dining, cân bằng giữa độ tươi, kỹ thuật và nghệ thuật trình bày.</p>
+        </div>
+        <a class="btn-outline" href="/lien-he">Đặt tasting menu</a>
+      </div>
+      {menuItems.length > 0 ? (
+        <div class="menu-grid">
+          {menuItems.map((item) => (
+            <article class="card-glass menu-card">
+              <img
+                src={item.imageUrl}
+                alt={item.name}
+                class="w-full h-[178px] object-cover"
+                width="356"
+                height="178"
+                loading="lazy"
+                decoding="async"
+              />
+              <div class="p-5">
+                <div class="flex items-center justify-between gap-3 mb-2">
+                  <span class="text-sm text-amber-200/80">{item.id}</span>
+                  <span class="price-pill">{item.price}</span>
+                </div>
+                <h3 class="text-xl">{item.name}</h3>
+                <p class="text-slate-300 mt-2">{item.desc}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div class="card-glass p-8 text-center text-slate-200/90">
+          Chưa có sản phẩm xuất bản để hiển thị trên trang chủ.
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section class="section-shell">
+      <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-center">
+        <div class="image-frame">
+          <Image
+            src={seafoodRoom}
+            alt="Luxury dining room"
+            class="w-full h-[380px] object-cover"
+            widths={[500, 760, 1100]}
+            sizes="(max-width: 1024px) 100vw, 44vw"
+            format="webp"
+            quality={70}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <div class="space-y-5">
+          <h2 class="section-title">Phong vị đại dương trong không gian sang trọng</h2>
+          <p class="section-subtitle">
+            Thưởng thức set menu 7-9 món với kỹ thuật chef chuẩn Âu, đảm bảo chuẩn sang trọng và thanh lịch.
+          </p>
+          <ul class="space-y-3 text-slate-300">
+            <li>Sommelier tư vấn rượu vang và cocktail</li>
+            <li>Phòng VIP riêng tư 6-20 khách</li>
+            <li>Live seafood bar và live cooking</li>
+          </ul>
+          <a class="btn-primary inline-block" href="/lien-he">Đặt bàn VIP</a>
+        </div>
+      </div>
+  </section>
+
+  <section class="section-shell">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="card-glass p-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div>
+            <h2 class="text-3xl">Đặt bàn hôm nay</h2>
+            <p class="text-slate-300">Cam kết giữ chỗ trong 15 phút, có tổng đài hỗ trợ 24/7.</p>
+          </div>
+          <div class="flex gap-4">
+            <a class="btn-primary" href="/lien-he">Đặt bàn</a>
+            <a class="btn-outline" href="/gioi-thieu">Xem thêm</a>
+          </div>
+        </div>
+      </div>
+  </section>
+</SiteLayout>

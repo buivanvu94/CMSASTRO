@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { contactsApi } from '@/lib/api';
+import contactsApi, { type Contact } from '@/lib/api/contacts';
 import Pagination from '@/components/ui/Pagination';
 
 export default function ContactTable() {
-  const [contacts, setContacts] = useState<any[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -21,8 +21,8 @@ export default function ContactTable() {
       if (statusFilter) params.status = statusFilter;
 
       const response = await contactsApi.getAll(params);
-      setContacts(response.data.items);
-      setTotalPages(response.data.pagination.totalPages);
+      setContacts(response.data);
+      setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error('Failed to load contacts:', error);
     } finally {
@@ -30,9 +30,9 @@ export default function ContactTable() {
     }
   };
 
-  const handleStatusUpdate = async (id: number, status: string) => {
+  const handleStatusUpdate = async (id: number, status: Contact['status']) => {
     try {
-      await contactsApi.updateStatus(id, status);
+      await contactsApi.updateStatus(id, { status });
       await loadContacts();
     } catch (error: any) {
       console.error('Failed to update status:', error);
@@ -51,7 +51,7 @@ export default function ContactTable() {
     }
 
     try {
-      await contactsApi.bulkDelete(selectedIds);
+      await contactsApi.bulkDelete({ ids: selectedIds });
       setSelectedIds([]);
       await loadContacts();
     } catch (error: any) {
@@ -165,7 +165,7 @@ export default function ContactTable() {
                       <td className="px-6 py-4">
                         <select
                           value={contact.status}
-                          onChange={(e) => handleStatusUpdate(contact.id, e.target.value)}
+                          onChange={(e) => handleStatusUpdate(contact.id, e.target.value as Contact['status'])}
                           className={`text-sm font-semibold rounded-full px-3 py-2 outline-none ${getStatusBadge(contact.status)}`}
                         >
                           <option value="new">New</option>

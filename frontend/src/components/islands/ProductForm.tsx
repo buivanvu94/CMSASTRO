@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { productsApi, categoriesApi } from '@/lib/api';
+import { productsApi, productCategoriesApi } from '@/lib/api';
 import MediaPicker from './MediaPicker';
 import PriceEditor from './PriceEditor';
 
@@ -31,14 +31,13 @@ export default function ProductForm({ productId }: ProductFormProps) {
     name: '',
     slug: '',
     description: '',
-    category_id: null as number | null,
+    product_category_id: null as number | null,
     featured_image_id: null as number | null,
     gallery: [] as number[],
-    status: 'active' as 'active' | 'inactive',
+    status: 'draft' as 'draft' | 'published' | 'archived',
     is_featured: false,
-    meta_title: '',
-    meta_description: '',
-    meta_keywords: '',
+    seo_title: '',
+    seo_description: '',
   });
 
   const [prices, setPrices] = useState<any[]>([]);
@@ -52,8 +51,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   const loadCategories = async () => {
     try {
-      const response = await categoriesApi.getAll({ limit: 1000 });
-      setCategories(response.data.items);
+      const response = await productCategoriesApi.getAll({ limit: 1000 });
+      setCategories(response.data);
     } catch (error) {
       console.error('Failed to load categories:', error);
     }
@@ -63,20 +62,19 @@ export default function ProductForm({ productId }: ProductFormProps) {
     try {
       setLoading(true);
       const response = await productsApi.getById(productId!);
-      const product = response.data;
+      const product = response;
       
       setFormData({
         name: product.name || '',
         slug: product.slug || '',
         description: product.description || '',
-        category_id: product.category_id,
+        product_category_id: product.product_category_id,
         featured_image_id: product.featured_image_id,
         gallery: product.gallery || [],
-        status: product.status || 'active',
+        status: product.status || 'draft',
         is_featured: product.is_featured || false,
-        meta_title: product.meta_title || '',
-        meta_description: product.meta_description || '',
-        meta_keywords: product.meta_keywords || '',
+        seo_title: product.seo_title || '',
+        seo_description: product.seo_description || '',
       });
 
       if (product.featuredImage) {
@@ -106,7 +104,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
     
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : (name === 'category_id' ? (value ? parseInt(value) : null) : value)
+      [name]: type === 'checkbox' ? checked : (name === 'product_category_id' ? (value ? parseInt(value) : null) : value)
     }));
   };
 
@@ -223,8 +221,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
                 Category
               </label>
               <select
-                name="category_id"
-                value={formData.category_id || ''}
+                name="product_category_id"
+                value={formData.product_category_id || ''}
                 onChange={handleChange}
                 className={selectClass}
               >
@@ -247,8 +245,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
                 onChange={handleChange}
                 className={selectClass}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="archived">Archived</option>
               </select>
             </div>
           </div>
@@ -365,14 +364,14 @@ export default function ProductForm({ productId }: ProductFormProps) {
             </label>
             <input
               type="text"
-              name="meta_title"
-              value={formData.meta_title}
+              name="seo_title"
+              value={formData.seo_title}
               onChange={handleChange}
               maxLength={60}
               className={inputClass}
             />
             <p className={subtleTextClass}>
-              {formData.meta_title.length}/60 characters
+              {formData.seo_title.length}/60 characters
             </p>
           </div>
 
@@ -381,30 +380,18 @@ export default function ProductForm({ productId }: ProductFormProps) {
               Meta Description
             </label>
             <textarea
-              name="meta_description"
-              value={formData.meta_description}
+              name="seo_description"
+              value={formData.seo_description}
               onChange={handleChange}
               rows={3}
               maxLength={160}
               className={textareaClass}
             />
             <p className={subtleTextClass}>
-              {formData.meta_description.length}/160 characters
+              {formData.seo_description.length}/160 characters
             </p>
           </div>
 
-          <div>
-            <label className={labelClass}>
-              Meta Keywords
-            </label>
-            <input
-              type="text"
-              name="meta_keywords"
-              value={formData.meta_keywords}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
         </div>
 
         {/* Actions */}

@@ -1,0 +1,17 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import ProductCategoryTree from '@/components/islands/ProductCategoryTree';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Product Categories - CMS Admin">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-100 via-yellow-300 to-amber-200 bg-clip-text text-transparent">Product Categories</h1>
+      <p class="mt-2 text-base text-amber-200/70">Manage taxonomy and hierarchy for product categories</p>
+    </div>
+
+    <ProductCategoryTree client:load />
+  </div>
+</DashboardLayout>
