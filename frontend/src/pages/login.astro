@@ -1,0 +1,11 @@
+---
+import AuthLayout from '@/layouts/AuthLayout.astro';
+import LoginForm from '@/components/islands/LoginForm';
+
+// Disable prerendering for this page to support authentication
+export const prerender = false;
+---
+
+<AuthLayout title="Đăng nhập - CMS Admin">
+  <LoginForm client:load />
+</AuthLayout>

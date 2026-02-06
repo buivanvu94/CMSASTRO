@@ -1,0 +1,20 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import MediaLibrary from '@/components/islands/MediaLibrary';
+import Card from '@/components/ui/Card.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Media Library - CMS Admin">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-100 via-yellow-300 to-amber-200 bg-clip-text text-transparent">Media Library</h1>
+      <p class="mt-2 text-base text-amber-200/70">Quản lý file và hình ảnh</p>
+    </div>
+
+    <Card padding="md" shadow="md">
+      <MediaLibrary client:load mode="library" />
+    </Card>
+  </div>
+</DashboardLayout>

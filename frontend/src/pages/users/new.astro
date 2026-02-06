@@ -1,0 +1,17 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import UserForm from '@/components/islands/UserForm';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="New User - CMS Admin">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-100 via-yellow-300 to-amber-200 bg-clip-text text-transparent">Create New User</h1>
+      <p class="mt-2 text-base text-amber-200/70">Add a new user to the system</p>
+    </div>
+
+    <UserForm client:load />
+  </div>
+</DashboardLayout>

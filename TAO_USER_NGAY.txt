@@ -1,0 +1,75 @@
+========================================
+   TẠO ADMIN USER NGAY - 3 CÁCH
+========================================
+
+📧 Email: buivuit@gmail.com
+🔐 Password: Buivanvu@#999
+👤 Role: admin
+
+========================================
+CÁCH 1: Dùng file HTML (DỄ NHẤT)
+========================================
+
+1. Mở file: test-register.html trong browser
+2. Click "Tạo Admin User"
+3. Đợi thông báo thành công
+4. Click "Mở Trang Login"
+5. Đăng nhập!
+
+========================================
+CÁCH 2: Dùng Postman/Thunder Client
+========================================
+
+POST http://localhost:5000/api/v1/auth/register
+
+Headers:
+  Content-Type: application/json
+
+Body (raw JSON):
+{
+  "email": "buivuit@gmail.com",
+  "password": "Buivanvu@#999",
+  "full_name": "Bui Van Vu",
+  "role": "admin"
+}
+
+Click Send!
+
+========================================
+CÁCH 3: Dùng curl
+========================================
+
+curl -X POST http://localhost:5000/api/v1/auth/register ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"buivuit@gmail.com\",\"password\":\"Buivanvu@#999\",\"full_name\":\"Bui Van Vu\",\"role\":\"admin\"}"
+
+========================================
+NẾU BÁO LỖI "Email already exists"
+========================================
+
+Xóa user cũ trước:
+
+mysql -u root -p
+Password: 261331064
+
+USE cms_db;
+DELETE FROM users WHERE email = 'buivuit@gmail.com';
+exit;
+
+Rồi thử lại!
+
+========================================
+SAU KHI TẠO THÀNH CÔNG
+========================================
+
+Đăng nhập tại: http://localhost:4322/login
+
+Email: buivuit@gmail.com
+Password: Buivanvu@#999
+
+========================================
+
+KHUYẾN NGHỊ: Dùng CÁCH 1 (test-register.html)
+Đơn giản nhất, chỉ cần click button!
+
+========================================

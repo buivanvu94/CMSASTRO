@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Register API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #fbbf24;
+        }
+        h1 {
+            color: #fbbf24;
+            text-align: center;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, #fbbf24, #eab308);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: linear-gradient(to right, #f59e0b, #d97706);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            background: #10b981;
+            color: #fff;
+        }
+        .error {
+            background: #ef4444;
+            color: #fff;
+        }
+        .info {
+            background: #3b82f6;
+            color: #fff;
+        }
+        .step {
+            background: #374151;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #fbbf24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Tạo Admin User</h1>
+        
+        <div class="step">
+            <strong>Bước 1:</strong> Xóa user cũ (nếu có)
+            <button id="deleteBtn" onclick="deleteUser()">Xóa User Cũ</button>
+        </div>
+
+        <div class="step">
+            <strong>Bước 2:</strong> Tạo user mới
+            <button id="registerBtn" onclick="registerUser()">Tạo Admin User</button>
+        </div>
+
+        <div class="step">
+            <strong>Bước 3:</strong> Đăng nhập
+            <button onclick="window.open('http://localhost:4322/login', '_blank')">Mở Trang Login</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api/v1';
+
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = message;
+        }
+
+        async function deleteUser() {
+            const btn = document.getElementById('deleteBtn');
+            btn.disabled = true;
+            btn.textContent = 'Đang xóa...';
+
+            try {
+                showResult('Đang xóa user cũ...', 'info');
+                
+                // Note: This would need a DELETE endpoint
+                // For now, we'll just show a message
+                showResult('⚠️ Cần xóa user thủ công trong MySQL:\n\nDELETE FROM users WHERE email = \'buivuit@gmail.com\';', 'info');
+                
+            } catch (error) {
+                showResult(`Lỗi: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Xóa User Cũ';
+            }
+        }
+
+        async function registerUser() {
+            const btn = document.getElementById('registerBtn');
+            btn.disabled = true;
+            btn.textContent = 'Đang tạo...';
+
+            try {
+                showResult('Đang gọi API register...', 'info');
+
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'buivuit@gmail.com',
+                        password: 'Buivanvu@#999',
+                        full_name: 'Bui Van Vu',
+                        role: 'admin'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(
+                        `✅ THÀNH CÔNG!\n\n` +
+                        `User ID: ${data.data.user.id}\n` +
+                        `Email: ${data.data.user.email}\n` +
+                        `Role: ${data.data.user.role}\n` +
+                        `Status: ${data.data.user.status}\n\n` +
+                        `Bây giờ bạn có thể đăng nhập!\n` +
+                        `Email: buivuit@gmail.com\n` +
+                        `Password: Buivanvu@#999`,
+                        'success'
+                    );
+                } else {
+                    showResult(
+                        `❌ LỖI:\n\n${data.message}\n\n` +
+                        `${JSON.stringify(data.errors || {}, null, 2)}`,
+                        'error'
+                    );
+                }
+
+            } catch (error) {
+                showResult(
+                    `❌ LỖI KẾT NỐI:\n\n${error.message}\n\n` +
+                    `Kiểm tra:\n` +
+                    `1. Backend có đang chạy không? (port 5000)\n` +
+                    `2. CORS có được cấu hình đúng không?`,
+                    'error'
+                );
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Tạo Admin User';
+            }
+        }
+
+        // Auto-check backend status
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_URL.replace('/api/v1', '')}/health`);
+                if (response.ok) {
+                    showResult('✅ Backend đang chạy! Sẵn sàng tạo user.', 'success');
+                }
+            } catch (error) {
+                showResult('⚠️ Không kết nối được backend. Kiểm tra xem backend có đang chạy không?', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

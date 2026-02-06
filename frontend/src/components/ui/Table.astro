@@ -1,0 +1,61 @@
+---
+export interface Props {
+  striped?: boolean;
+  hoverable?: boolean;
+  bordered?: boolean;
+  class?: string;
+}
+
+const {
+  striped = false,
+  hoverable = true,
+  bordered = true,
+  class: className = '',
+} = Astro.props;
+
+const baseClasses = 'min-w-full divide-y divide-gray-200';
+const borderedClass = bordered ? 'border border-gray-200' : '';
+
+const classes = `${baseClasses} ${borderedClass} ${className}`;
+---
+
+<div class="overflow-x-auto">
+  <table class={classes}>
+    <slot />
+  </table>
+</div>
+
+<style>
+  table :global(thead) {
+    @apply bg-gray-50;
+  }
+
+  table :global(th) {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  }
+
+  table :global(td) {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+  }
+
+  table :global(tbody tr) {
+    @apply border-b border-gray-200;
+  }
+
+  table.striped :global(tbody tr:nth-child(even)) {
+    @apply bg-gray-50;
+  }
+
+  table.hoverable :global(tbody tr:hover) {
+    @apply bg-gray-100 cursor-pointer;
+  }
+</style>
+
+<script define:vars={{ striped, hoverable }}>
+  // Add classes dynamically based on props
+  const table = document.currentScript?.previousElementSibling?.querySelector('table');
+  if (table) {
+    if (striped) table.classList.add('striped');
+    if (hoverable) table.classList.add('hoverable');
+  }
+</script>

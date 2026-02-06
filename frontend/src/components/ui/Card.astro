@@ -1,0 +1,48 @@
+---
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  shadow?: 'none' | 'sm' | 'md' | 'lg';
+  class?: string;
+}
+
+const {
+  title,
+  subtitle,
+  padding = 'md',
+  shadow = 'md',
+  class: className = '',
+} = Astro.props;
+
+const paddingClasses = {
+  none: '',
+  sm: 'p-4',
+  md: 'p-6',
+  lg: 'p-8',
+};
+
+const shadowClasses = {
+  none: '',
+  sm: 'shadow-sm',
+  md: 'shadow-md',
+  lg: 'shadow-lg',
+};
+
+const classes = `bg-black/70 rounded-lg border border-amber-400/20 ${shadowClasses[shadow]} ${paddingClasses[padding]} ${className}`;
+---
+
+<div class={classes}>
+  {(title || subtitle) && (
+    <div class="mb-4">
+      {title && (
+        <h3 class="text-xl font-semibold text-amber-100">{title}</h3>
+      )}
+      {subtitle && (
+        <p class="mt-1 text-base text-amber-200/70">{subtitle}</p>
+      )}
+    </div>
+  )}
+  
+  <slot />
+</div>

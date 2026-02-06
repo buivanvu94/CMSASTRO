@@ -1,0 +1,17 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import ContactTable from '@/components/islands/ContactTable';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Contacts - CMS Admin">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-100 via-yellow-300 to-amber-200 bg-clip-text text-transparent">Contacts</h1>
+      <p class="mt-2 text-base text-amber-200/70">Manage customer inquiries and messages</p>
+    </div>
+
+    <ContactTable client:load />
+  </div>
+</DashboardLayout>

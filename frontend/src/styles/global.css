@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer utilities {
+  /* Gold gradient text */
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 bg-clip-text text-transparent;
+  }
+  
+  /* Gold shine animation */
+  .animate-shine {
+    animation: shine 3s ease-in-out infinite;
+  }
+  
+  @keyframes shine {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  /* Glass morphism */
+  .glass {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10;
+  }
+  
+  .glass-gold {
+    @apply backdrop-blur-xl bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-amber-600/10 border border-amber-400/20;
+  }
+}
