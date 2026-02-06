@@ -40,6 +40,33 @@ export const getPosts = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Get public posts for website pages
+ * GET /posts/public
+ */
+export const getPublicPosts = asyncHandler(async (req, res) => {
+  const { page, limit, search, categoryId, isFeatured } = req.query;
+
+  const result = await postService.findAll({
+    page: parseInt(page, 10) || 1,
+    limit: parseInt(limit, 10) || 12,
+    search,
+    categoryId: categoryId ? parseInt(categoryId, 10) : null,
+    status: 'published',
+    isFeatured: isFeatured !== undefined ? isFeatured === 'true' : null,
+    authorId: null
+  });
+
+  return paginatedResponse(
+    res,
+    result.posts,
+    result.total,
+    result.page,
+    result.limit,
+    'Public posts retrieved successfully'
+  );
+});
+
+/**
  * Get post by ID
  * GET /posts/:id
  */
@@ -59,6 +86,17 @@ export const getPostBySlug = asyncHandler(async (req, res) => {
   const post = await postService.findBySlug(slug);
 
   return successResponse(res, post, 'Post retrieved successfully');
+});
+
+/**
+ * Get public post by slug
+ * GET /posts/public/slug/:slug
+ */
+export const getPublicPostBySlug = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  const post = await postService.findPublicBySlug(slug);
+
+  return successResponse(res, post, 'Public post retrieved successfully');
 });
 
 /**
@@ -121,8 +159,10 @@ export const getStats = asyncHandler(async (req, res) => {
 
 export default {
   getPosts,
+  getPublicPosts,
   getPostById,
   getPostBySlug,
+  getPublicPostBySlug,
   createPost,
   updatePost,
   deletePost,

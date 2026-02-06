@@ -31,13 +31,42 @@ const { title = 'Aurelian Seafood', description = 'Nhà hàng hải sản cao c�
         </a>
         <nav class="hidden md:flex items-center gap-8 text-sm">
           <a class="nav-link" href="/">Trang chủ</a>
+          <a class="nav-link" href="/menu">Thực đơn</a>
+          <a class="nav-link" href="/blog">Blog</a>
           <a class="nav-link" href="/gioi-thieu">Giới thiệu</a>
           <a class="nav-link" href="/lien-he">Liên hệ</a>
-          <a class="nav-link" href="/admin">Admin</a>
         </nav>
-        <a class="btn-outline" href="/lien-he">Đặt bàn</a>
+        <div class="flex items-center gap-2">
+          <a class="btn-outline nav-booking-btn inline-flex" href="/lien-he">Đặt bàn</a>
+          <button
+            type="button"
+            class="mobile-menu-toggle md:hidden"
+            aria-label="Mở menu điều hướng"
+            aria-controls="mobile-nav-canvas"
+            aria-expanded="false"
+            data-mobile-menu-open
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
       </div>
     </header>
+    <div class="mobile-drawer-backdrop" data-mobile-backdrop hidden></div>
+    <aside id="mobile-nav-canvas" class="mobile-drawer-panel" data-mobile-panel aria-hidden="true">
+      <div class="flex items-center justify-end mb-6">
+        <button type="button" class="mobile-close-btn" aria-label="Đóng menu" data-mobile-menu-close>×</button>
+      </div>
+      <nav class="mobile-drawer-nav">
+        <a href="/" data-mobile-nav-link>Trang chủ</a>
+        <a href="/menu" data-mobile-nav-link>Thực đơn</a>
+        <a href="/blog" data-mobile-nav-link>Blog</a>
+        <a href="/gioi-thieu" data-mobile-nav-link>Giới thiệu</a>
+        <a href="/lien-he" data-mobile-nav-link>Liên hệ</a>
+      </nav>
+      <a class="btn-primary inline-flex justify-center mt-6 w-full" href="/lien-he" data-mobile-nav-link>Đặt bàn ngay</a>
+    </aside>
     <main>
       <slot />
     </main>
@@ -62,6 +91,8 @@ const { title = 'Aurelian Seafood', description = 'Nhà hàng hải sản cao c�
           <p class="text-sm uppercase tracking-widest text-amber-200/80">Điều hướng</p>
           <div class="space-y-2 mt-3 text-base">
             <a class="footer-link block" href="/">Trang chủ</a>
+            <a class="footer-link block" href="/menu">Thực đơn</a>
+            <a class="footer-link block" href="/blog">Blog</a>
             <a class="footer-link block" href="/gioi-thieu">Giới thiệu</a>
             <a class="footer-link block" href="/lien-he">Liên hệ</a>
           </div>
@@ -75,6 +106,41 @@ const { title = 'Aurelian Seafood', description = 'Nhà hàng hải sản cao c�
       </div>
       <p class="text-center text-sm text-slate-500 mt-12">© 2026 Aurelian Seafood. All rights reserved.</p>
     </footer>
+    <script is:inline>
+      (() => {
+        const openButton = document.querySelector('[data-mobile-menu-open]');
+        const closeButton = document.querySelector('[data-mobile-menu-close]');
+        const panel = document.querySelector('[data-mobile-panel]');
+        const backdrop = document.querySelector('[data-mobile-backdrop]');
+        const links = Array.from(document.querySelectorAll('[data-mobile-nav-link]'));
+        if (!openButton || !closeButton || !panel || !backdrop) return;
+
+        const openMenu = () => {
+          document.body.classList.add('mobile-nav-open');
+          panel.setAttribute('aria-hidden', 'false');
+          openButton.setAttribute('aria-expanded', 'true');
+          backdrop.hidden = false;
+        };
+
+        const closeMenu = () => {
+          document.body.classList.remove('mobile-nav-open');
+          panel.setAttribute('aria-hidden', 'true');
+          openButton.setAttribute('aria-expanded', 'false');
+          backdrop.hidden = true;
+        };
+
+        openButton.addEventListener('click', openMenu);
+        closeButton.addEventListener('click', closeMenu);
+        backdrop.addEventListener('click', closeMenu);
+        links.forEach((link) => link.addEventListener('click', closeMenu));
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            closeMenu();
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
 

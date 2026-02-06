@@ -34,6 +34,28 @@ router.get(
 );
 
 /**
+ * GET /posts/public
+ * Public list for frontend pages (published posts only)
+ */
+router.get(
+  '/public',
+  postValidation.getPostsValidation,
+  postValidation.handleValidationErrors,
+  postController.getPublicPosts
+);
+
+/**
+ * GET /posts/public/slug/:slug
+ * Public post by slug for frontend pages
+ */
+router.get(
+  '/public/slug/:slug',
+  postValidation.getPostBySlugValidation,
+  postValidation.handleValidationErrors,
+  postController.getPublicPostBySlug
+);
+
+/**
  * GET /posts
  * List all posts with role-based filtering
  */

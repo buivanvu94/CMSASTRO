@@ -189,6 +189,41 @@ export const findBySlug = async (slug) => {
 };
 
 /**
+ * Find published post by slug for public pages
+ * @param {string} slug - Post slug
+ * @returns {Promise<Object>} - Post object
+ * @throws {NotFoundError} - If post not found
+ */
+export const findPublicBySlug = async (slug) => {
+  const post = await Post.findOne({
+    where: { slug, status: 'published' },
+    include: [
+      {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name', 'slug']
+      },
+      {
+        model: User,
+        as: 'author',
+        attributes: ['id', 'full_name', 'email']
+      },
+      {
+        model: Media,
+        as: 'featuredImage',
+        attributes: ['id', 'filename', 'path', 'thumbnail_path', 'alt_text']
+      }
+    ]
+  });
+
+  if (!post) {
+    throw new NotFoundError('Post not found');
+  }
+
+  return post;
+};
+
+/**
  * Create new post with slug generation
  * @param {Object} data - Post data
  * @param {number} authorId - Author user ID
@@ -319,6 +354,7 @@ export default {
   findAll,
   findById,
   findBySlug,
+  findPublicBySlug,
   create,
   update,
   deletePost,
