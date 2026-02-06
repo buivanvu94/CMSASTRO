@@ -25,24 +25,39 @@ export const prerender = true;
           </div>
         </div>
         <div class="card-glass p-8">
-          <form class="space-y-4">
+          <form id="reservation-form" class="space-y-4" data-api-base={import.meta.env.PUBLIC_API_URL || 'http://localhost:5000/api/v1'}>
             <div>
               <label class="block text-sm text-slate-300 mb-1" for="name">Họ và tên</label>
-              <input class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="name" name="name" placeholder="Nguyễn Văn A" />
+              <input class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="name" name="name" placeholder="Nguyễn Văn A" required />
+            </div>
+            <div>
+              <label class="block text-sm text-slate-300 mb-1" for="email">Email</label>
+              <input class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="email" name="email" type="email" placeholder="you@example.com" required />
             </div>
             <div>
               <label class="block text-sm text-slate-300 mb-1" for="phone">Số điện thoại</label>
-              <input class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="phone" name="phone" placeholder="0900 000 000" />
+              <input class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="phone" name="phone" placeholder="0900 000 000" required />
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm text-slate-300 mb-1" for="reservation-date">Ngày</label>
+                <input class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="reservation-date" name="reservation_date" type="date" required />
+              </div>
+              <div>
+                <label class="block text-sm text-slate-300 mb-1" for="reservation-time">Giờ</label>
+                <input class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="reservation-time" name="reservation_time" type="time" required />
+              </div>
             </div>
             <div>
-              <label class="block text-sm text-slate-300 mb-1" for="datetime">Ngày giờ</label>
-              <input class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="datetime" name="datetime" placeholder="20/03/2026 19:00" />
+              <label class="block text-sm text-slate-300 mb-1" for="party-size">Số khách</label>
+              <input class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="party-size" name="party_size" type="number" min="1" max="50" value="2" required />
             </div>
             <div>
               <label class="block text-sm text-slate-300 mb-1" for="note">Ghi chú</label>
               <textarea class="w-full px-4 py-3 rounded-lg bg-black/50 border border-amber-300/20 text-white" id="note" name="note" rows="3" placeholder="Số khách, set menu..." ></textarea>
             </div>
-            <button class="btn-primary w-full" type="submit">Gửi yêu cầu</button>
+            <p id="reservation-feedback" class="text-sm text-slate-300 hidden" aria-live="polite"></p>
+            <button id="reservation-submit" class="btn-primary w-full" type="submit">Gửi yêu cầu</button>
           </form>
         </div>
       </div>
@@ -66,4 +81,73 @@ export const prerender = true;
         </div>
       </div>
   </section>
+
+  <script>
+    const form = document.getElementById('reservation-form');
+    if (form instanceof HTMLFormElement) {
+      const submitButton = document.getElementById('reservation-submit');
+      const feedback = document.getElementById('reservation-feedback');
+      const apiBase = form.dataset.apiBase || 'http://localhost:5000/api/v1';
+
+      const showFeedback = (message: string, isError: boolean) => {
+        if (!feedback) return;
+        feedback.textContent = message;
+        feedback.classList.remove('hidden', 'text-emerald-300', 'text-rose-300', 'text-slate-300');
+        feedback.classList.add(isError ? 'text-rose-300' : 'text-emerald-300');
+      };
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        if (submitButton instanceof HTMLButtonElement) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Đang gửi...';
+        }
+
+        const formData = new FormData(form);
+        const payload = {
+          customer_name: String(formData.get('name') || '').trim(),
+          customer_email: String(formData.get('email') || '').trim(),
+          customer_phone: String(formData.get('phone') || '').trim(),
+          reservation_date: String(formData.get('reservation_date') || '').trim(),
+          reservation_time: String(formData.get('reservation_time') || '').trim(),
+          party_size: Number(formData.get('party_size') || 0),
+          special_requests: String(formData.get('note') || '').trim() || undefined
+        };
+
+        try {
+          const response = await fetch(`${apiBase}/reservations`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              accept: 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const validationErrors = data?.errors ? Object.values(data.errors).join(', ') : '';
+            const message = validationErrors || data?.message || 'Gửi yêu cầu thất bại, vui lòng thử lại.';
+            throw new Error(message);
+          }
+
+          form.reset();
+          const partySizeInput = document.getElementById('party-size');
+          if (partySizeInput instanceof HTMLInputElement) {
+            partySizeInput.value = '2';
+          }
+          showFeedback('Đặt bàn thành công. Nhà hàng sẽ liên hệ xác nhận sớm.', false);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Không thể gửi yêu cầu.';
+          showFeedback(message, true);
+        } finally {
+          if (submitButton instanceof HTMLButtonElement) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Gửi yêu cầu';
+          }
+        }
+      });
+    }
+  </script>
 </SiteLayout>

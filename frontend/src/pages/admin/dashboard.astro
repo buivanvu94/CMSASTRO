@@ -1,21 +1,67 @@
----
+﻿---
 import DashboardLayout from '@/layouts/DashboardLayout.astro';
 
 // Disable prerendering for authenticated pages
 export const prerender = false;
+
+const apiBaseUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const accessToken = Astro.cookies.get('access_token')?.value;
+
+const buildHeaders = () => {
+  const headers: Record<string, string> = {
+    accept: 'application/json',
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  return headers;
+};
+
+const fetchStats = async (endpoint: string, fallback: any) => {
+  try {
+    const response = await fetch(`${apiBaseUrl}${endpoint}`, {
+      method: 'GET',
+      headers: buildHeaders(),
+    });
+
+    if (!response.ok) {
+      return fallback;
+    }
+
+    const payload = await response.json();
+    return payload?.data || fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const [
+  postStats,
+  productStats,
+  reservationStats,
+  contactStats,
+] = await Promise.all([
+  fetchStats('/posts/stats', { total: 0, published: 0, byStatus: [] }),
+  fetchStats('/products/stats', { total: 0, published: 0, byStatus: [] }),
+  fetchStats('/reservations/stats', { total: 0, upcoming: 0, byStatus: [] }),
+  fetchStats('/contacts/stats', { total: 0, newContacts: 0, byStatus: [] }),
+]);
+
+const getStatusCount = (statuses: any[], target: string) => {
+  return statuses?.find((item) => item.status === target)?.count || 0;
+};
 ---
 
 <DashboardLayout title="Dashboard - CMS Admin">
   <div class="space-y-6">
-    <!-- Page Header -->
     <div>
       <h1 class="text-3xl font-bold text-gradient-gold animate-shine bg-[length:200%_auto]">Dashboard</h1>
       <p class="mt-2 text-base text-amber-200/70">Tổng quan hệ thống quản lý nội dung</p>
     </div>
 
-    <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <!-- Posts Card -->
       <div class="glass-gold rounded-2xl p-6 border border-amber-400/20 hover:border-amber-400/40 transition-all duration-200 group">
         <div class="flex items-center justify-between mb-4">
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -23,13 +69,12 @@ export const prerender = false;
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <span class="text-xs text-green-400 font-medium">+0%</span>
+          <span class="text-xs text-green-400 font-medium">{postStats.published} public</span>
         </div>
-        <h3 class="text-2xl font-bold text-amber-100 mb-1">0</h3>
+        <h3 class="text-2xl font-bold text-amber-100 mb-1">{postStats.total}</h3>
         <p class="text-sm text-gray-400">Tổng bài viết</p>
       </div>
 
-      <!-- Products Card -->
       <div class="glass-gold rounded-2xl p-6 border border-amber-400/20 hover:border-amber-400/40 transition-all duration-200 group">
         <div class="flex items-center justify-between mb-4">
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/20">
@@ -37,13 +82,12 @@ export const prerender = false;
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           </div>
-          <span class="text-xs text-green-400 font-medium">+0%</span>
+          <span class="text-xs text-green-400 font-medium">{productStats.published} public</span>
         </div>
-        <h3 class="text-2xl font-bold text-amber-100 mb-1">0</h3>
+        <h3 class="text-2xl font-bold text-amber-100 mb-1">{productStats.total}</h3>
         <p class="text-sm text-gray-400">Sản phẩm</p>
       </div>
 
-      <!-- Reservations Card -->
       <div class="glass-gold rounded-2xl p-6 border border-amber-400/20 hover:border-amber-400/40 transition-all duration-200 group">
         <div class="flex items-center justify-between mb-4">
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
@@ -51,13 +95,12 @@ export const prerender = false;
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <span class="text-xs text-amber-400 font-medium">0 chờ</span>
+          <span class="text-xs text-amber-400 font-medium">{getStatusCount(reservationStats.byStatus, 'pending')} chờ</span>
         </div>
-        <h3 class="text-2xl font-bold text-amber-100 mb-1">0</h3>
+        <h3 class="text-2xl font-bold text-amber-100 mb-1">{reservationStats.total}</h3>
         <p class="text-sm text-gray-400">Đặt bàn</p>
       </div>
 
-      <!-- Contacts Card -->
       <div class="glass-gold rounded-2xl p-6 border border-amber-400/20 hover:border-amber-400/40 transition-all duration-200 group">
         <div class="flex items-center justify-between mb-4">
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/20">
@@ -65,15 +108,14 @@ export const prerender = false;
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <span class="text-xs text-red-400 font-medium">0 mới</span>
+          <span class="text-xs text-red-400 font-medium">{contactStats.newContacts} mới</span>
         </div>
-        <h3 class="text-2xl font-bold text-amber-100 mb-1">0</h3>
+        <h3 class="text-2xl font-bold text-amber-100 mb-1">{contactStats.total}</h3>
         <p class="text-sm text-gray-400">Liên hệ</p>
       </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Recent Activity -->
       <div class="glass-gold rounded-2xl border border-amber-400/20 overflow-hidden">
         <div class="px-6 py-4 border-b border-amber-400/20">
           <h2 class="text-xl font-semibold text-amber-100">Hoạt động gần đây</h2>
@@ -89,15 +131,42 @@ export const prerender = false;
                 </div>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm text-gray-300">Chưa có hoạt động nào</p>
-                <p class="text-xs text-gray-500 mt-1">Bắt đầu tạo nội dung để xem hoạt động</p>
+                <p class="text-sm text-gray-300">Bài viết đã xuất bản: {postStats.published}</p>
+                <p class="text-xs text-gray-500 mt-1">Hệ thống đang có {postStats.total} bài viết</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 to-yellow-600/20 border border-amber-400/30 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-gray-300">Đặt bàn sắp tới: {reservationStats.upcoming}</p>
+                <p class="text-xs text-gray-500 mt-1">Đơn chờ xác nhận: {getStatusCount(reservationStats.byStatus, 'pending')}</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400/20 to-red-600/20 border border-red-400/30 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-gray-300">Liên hệ mới: {contactStats.newContacts}</p>
+                <p class="text-xs text-gray-500 mt-1">Tổng liên hệ đã nhận: {contactStats.total}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Quick Actions -->
       <div class="glass-gold rounded-2xl border border-amber-400/20 overflow-hidden">
         <div class="px-6 py-4 border-b border-amber-400/20">
           <h2 class="text-xl font-semibold text-amber-100">Thao tác nhanh</h2>

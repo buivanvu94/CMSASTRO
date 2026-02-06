@@ -1,4 +1,4 @@
-import { body, param, query } from 'express-validator';
+import { body, param, query, validationResult } from 'express-validator';
 
 /**
  * User Validation Rules
@@ -133,7 +133,6 @@ export const getUsersValidation = [
  * Middleware to handle validation errors
  */
 export const handleValidationErrors = (req, res, next) => {
-  const { validationResult } = require('express-validator');
   const errors = validationResult(req);
   
   if (!errors.isEmpty()) {

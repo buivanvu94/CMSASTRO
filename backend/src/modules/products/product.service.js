@@ -37,6 +37,41 @@ const validateProductCategory = async (productCategoryId) => {
   }
 };
 
+const normalizePrices = (prices = []) => {
+  const cleaned = prices
+    .map((price) => ({
+      variant_name: typeof price.variant_name === 'string' && price.variant_name.trim()
+        ? price.variant_name.trim()
+        : null,
+      price: Number(price.price) || 0,
+      sale_price: price.sale_price === null || price.sale_price === undefined || price.sale_price === ''
+        ? null
+        : Number(price.sale_price),
+      is_default: Boolean(price.is_default),
+      status: price.status === 'inactive' ? 'inactive' : 'active'
+    }))
+    .filter((price) => Number.isFinite(price.price) && price.price >= 0);
+
+  if (cleaned.length === 0) {
+    return [
+      {
+        variant_name: null,
+        price: 0,
+        sale_price: null,
+        is_default: true,
+        status: 'active'
+      }
+    ];
+  }
+
+  const hasDefault = cleaned.some((price) => price.is_default);
+  if (!hasDefault) {
+    cleaned[0].is_default = true;
+  }
+
+  return cleaned;
+};
+
 /**
  * Find all products with pagination and filtering
  * @param {Object} options - Query options
@@ -199,21 +234,13 @@ export const create = async (data, prices = []) => {
     slug
   });
 
-  // Create price variants if provided
-  if (prices && prices.length > 0) {
-    // Ensure at least one price is default
-    const hasDefault = prices.some(p => p.is_default);
-    if (!hasDefault && prices.length > 0) {
-      prices[0].is_default = true;
-    }
-
-    await ProductPrice.bulkCreate(
-      prices.map(price => ({
-        ...price,
-        product_id: product.id
-      }))
-    );
-  }
+  const normalizedPrices = normalizePrices(prices);
+  await ProductPrice.bulkCreate(
+    normalizedPrices.map((price) => ({
+      ...price,
+      product_id: product.id
+    }))
+  );
 
   // Fetch with relationships
   return findById(product.id);
@@ -225,7 +252,7 @@ export const create = async (data, prices = []) => {
  * @param {Object} data - Update data
  * @returns {Promise<Object>} - Updated product
  */
-export const update = async (id, data) => {
+export const update = async (id, data, prices) => {
   const product = await findById(id);
 
   if (Object.prototype.hasOwnProperty.call(data, 'product_category_id')) {
@@ -252,6 +279,21 @@ export const update = async (id, data) => {
   }
 
   await product.update(data);
+
+  if (Array.isArray(prices)) {
+    const normalizedPrices = normalizePrices(prices);
+
+    await ProductPrice.destroy({
+      where: { product_id: product.id }
+    });
+
+    await ProductPrice.bulkCreate(
+      normalizedPrices.map((price) => ({
+        ...price,
+        product_id: product.id
+      }))
+    );
+  }
 
   // Fetch with relationships
   return findById(product.id);

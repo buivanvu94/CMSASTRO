@@ -10,14 +10,24 @@ const apiClient: AxiosInstance = axios.create({
 });
 
 // Token management functions
+const getCookieValue = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() || null;
+  }
+  return null;
+};
+
 const getAccessToken = (): string | null => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('access_token');
+  return localStorage.getItem('access_token') || getCookieValue('access_token');
 };
 
 const getRefreshToken = (): string | null => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('refresh_token');
+  return localStorage.getItem('refresh_token') || getCookieValue('refresh_token');
 };
 
 const setAccessToken = (token: string): void => {

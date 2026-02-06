@@ -107,9 +107,9 @@ export const createProduct = asyncHandler(async (req, res) => {
  */
 export const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const data = req.body;
+  const { prices, ...data } = req.body;
 
-  const product = await productService.update(parseInt(id), data);
+  const product = await productService.update(parseInt(id, 10), data, prices);
 
   return successResponse(res, product, 'Product updated successfully');
 });

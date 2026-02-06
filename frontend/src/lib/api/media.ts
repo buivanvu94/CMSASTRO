@@ -40,6 +40,11 @@ export interface CreateFolderData {
   name: string;
 }
 
+export interface MediaFolder {
+  name: string;
+  count: number;
+}
+
 export interface BulkDeleteData {
   ids: number[];
 }
@@ -124,9 +129,9 @@ const mediaApi = {
   /**
    * Get list of folders
    */
-  async getFolders(): Promise<string[]> {
+  async getFolders(): Promise<MediaFolder[]> {
     const response = await apiClient.get('/media/folders');
-    return response.data.data;
+    return Array.isArray(response.data.data) ? response.data.data : [];
   },
 
   /**

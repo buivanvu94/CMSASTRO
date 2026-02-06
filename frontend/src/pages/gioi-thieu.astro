@@ -1,81 +1,249 @@
 ﻿---
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { Image } from 'astro:assets';
+import seafoodHero from '@/assets/images/seafood-hero.jpg';
 import seafoodAbout from '@/assets/images/seafood-about.jpg';
+import seafoodRoom from '@/assets/images/seafood-room.jpg';
 
 export const prerender = true;
 ---
 
 <SiteLayout title="Giới thiệu - Aurelian Seafood" description="Không gian nhà hàng hải sản cao cấp">
-  <section class="section-shell">
-      <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-[1.1fr_0.9fr] gap-12 items-center">
-        <div class="space-y-5">
-          <span class="badge">Về Aurelian</span>
-          <h1 class="text-4xl md:text-5xl">Giới thiệu nhà hàng hải sản sang trọng</h1>
-          <p class="text-slate-300">
-            Aurelian Seafood là không gian fine dining lấy cảm hứng từ đại dương, nơi hội tụ những đầu bếp
-            từ Pháp và châu Á, mang đến trải nghiệm ẩm thực thăng hoa.
-          </p>
-          <div class="grid grid-cols-2 gap-6 pt-4">
-            <div class="card-glass p-5">
-              <p class="text-sm text-amber-200/80">2016</p>
-              <p class="text-lg font-semibold">Thành lập</p>
-            </div>
-            <div class="card-glass p-5">
-              <p class="text-sm text-amber-200/80">25+</p>
-              <p class="text-lg font-semibold">Đầu bếp quốc tế</p>
-            </div>
+  <section class="section-shell pt-16 md:pt-20">
+    <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-center">
+      <div class="space-y-6 fade-up">
+        <span class="badge">Di sản đại dương</span>
+        <h1 class="about-hero-title text-4xl md:text-5xl lg:text-6xl leading-tight hero-title-gradient">
+          Hành trình kiến tạo trải nghiệm hải sản chuẩn fine dining
+        </h1>
+        <p class="about-body text-slate-200/85">
+          Aurelian Seafood được xây dựng như một nhà hàng kể chuyện bằng hương vị: từ nguồn hải sản tuyển chọn,
+          kỹ thuật bếp chuẩn mực, đến nghi thức phục vụ cá nhân hóa cho từng bàn tiệc.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+          <div class="card-glass p-5">
+            <p class="text-sm text-amber-200/80">2016</p>
+            <p class="text-lg font-semibold">Thành lập tại Quận 1</p>
+          </div>
+          <div class="card-glass p-5">
+            <p class="text-sm text-amber-200/80">68.000+</p>
+            <p class="text-lg font-semibold">Lượt khách phục vụ</p>
+          </div>
+          <div class="card-glass p-5">
+            <p class="text-sm text-amber-200/80">28 Chef</p>
+            <p class="text-lg font-semibold">Đội ngũ bếp quốc tế</p>
+          </div>
+          <div class="card-glass p-5">
+            <p class="text-sm text-amber-200/80">4.9/5</p>
+            <p class="text-lg font-semibold">Điểm đánh giá trung bình</p>
           </div>
         </div>
+      </div>
+      <div class="relative fade-up delay-1">
         <div class="image-frame">
           <Image
-            src={seafoodAbout}
-            alt="Không gian nhà hàng"
-            class="w-full h-[420px] object-cover"
+            src={seafoodHero}
+            alt="Không gian fine dining tại Aurelian Seafood"
+            class="w-full h-[320px] md:h-[420px] object-cover"
             widths={[600, 900, 1200]}
             sizes="(max-width: 1024px) 100vw, 48vw"
             format="webp"
             quality={72}
-            loading="lazy"
+            loading="eager"
+            fetchpriority="high"
             decoding="async"
           />
         </div>
+        <div class="card-glass p-5 absolute -bottom-8 left-6 right-6 md:right-auto md:w-80">
+          <p class="text-sm text-amber-200/80 uppercase tracking-[0.2em]">Signature Promise</p>
+          <p class="text-lg mt-2">Giữ nguyên độ tươi, tôn trọng vị biển, hoàn thiện bằng kỹ thuật tinh gọn.</p>
+        </div>
       </div>
+    </div>
   </section>
 
   <section class="section-shell">
-      <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-3 gap-6">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="mb-8">
+        <p class="text-sm text-amber-200/80 tracking-[0.25em] uppercase">Hành trình thương hiệu</p>
+        <h2 class="section-title about-section-title">Các cột mốc phát triển</h2>
+      </div>
+      <div class="timeline-grid">
         <div class="card-glass p-6">
-          <h3 class="text-xl mb-2">Triết lý</h3>
-          <p class="text-slate-300">Tôn vinh hương vị tự nhiên, tối giản gia vị để nổi bật chất lượng hải sản.</p>
+          <p class="text-sm text-amber-200/80">2016</p>
+          <h3 class="text-2xl mt-2 mb-3">Ra đời thương hiệu Aurelian</h3>
+          <p class="text-slate-300">Mở nhà hàng đầu tiên với triết lý “đại dương trong từng chi tiết”.</p>
         </div>
         <div class="card-glass p-6">
-          <h3 class="text-xl mb-2">Nguồn hải sản</h3>
-          <p class="text-slate-300">Mỗi ngày nhập thẳng từ những vùng biển sạch, có truy xuất rõ ràng.</p>
+          <p class="text-sm text-amber-200/80">2019</p>
+          <h3 class="text-2xl mt-2 mb-3">Thiết lập chuỗi cung ứng riêng</h3>
+          <p class="text-slate-300">Ký hợp tác trực tiếp với tàu đánh bắt và trại nuôi chuẩn xuất khẩu.</p>
         </div>
         <div class="card-glass p-6">
-          <h3 class="text-xl mb-2">Dịch vụ</h3>
-          <p class="text-slate-300">Bảo quản bàn, sinh nhật, kỷ niệm với setup sang trọng và cá nhân hóa.</p>
+          <p class="text-sm text-amber-200/80">2022</p>
+          <h3 class="text-2xl mt-2 mb-3">Ra mắt khu Private Dining</h3>
+          <p class="text-slate-300">Không gian riêng tư cho tiệc doanh nhân, kỷ niệm và tasting menu.</p>
+        </div>
+        <div class="card-glass p-6">
+          <p class="text-sm text-amber-200/80">2026</p>
+          <h3 class="text-2xl mt-2 mb-3">Nâng cấp trải nghiệm đa giác quan</h3>
+          <p class="text-slate-300">Tinh chỉnh ánh sáng, âm thanh, nhịp phục vụ theo từng khung giờ dùng bữa.</p>
         </div>
       </div>
+    </div>
   </section>
 
   <section class="section-shell">
-      <div class="max-w-6xl mx-auto px-6">
-        <div class="card-glass p-10 grid md:grid-cols-2 gap-8">
-          <div>
-            <h2 class="text-3xl mb-3">Đội ngũ đầu bếp</h2>
-            <p class="text-slate-300">
-              Đội ngũ chef từng làm việc tại các nhà hàng 1-2 sao Michelin, kết hợp kỹ thuật Âu với
-              gia vị Á Đông, tạo nên những món signature độc đáo.
-            </p>
+    <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-[0.95fr_1.05fr] gap-10 items-center">
+      <div class="image-frame">
+        <Image
+            src={seafoodAbout}
+            alt="Chef hoàn thiện món ăn tại bếp mở"
+            class="w-full h-[320px] md:h-[440px] object-cover"
+            widths={[600, 900, 1200]}
+            sizes="(max-width: 1024px) 100vw, 44vw"
+            format="webp"
+          quality={72}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div class="space-y-6">
+        <div>
+          <p class="text-sm text-amber-200/80 tracking-[0.25em] uppercase">Tiêu chuẩn nguyên liệu</p>
+          <h2 class="section-title about-section-title">Quy trình tuyển chọn 4 lớp</h2>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <article class="card-glass p-5">
+            <p class="text-amber-200 font-semibold">01. Truy xuất nguồn gốc</p>
+            <p class="text-slate-300 mt-2">Mỗi lô hải sản đều có hồ sơ vùng biển, phương thức đánh bắt và thời điểm cập bến.</p>
+          </article>
+          <article class="card-glass p-5">
+            <p class="text-amber-200 font-semibold">02. Kiểm định cảm quan</p>
+            <p class="text-slate-300 mt-2">Đánh giá độ săn, mùi, màu và độ ngọt tự nhiên trước khi nhập kho lạnh.</p>
+          </article>
+          <article class="card-glass p-5">
+            <p class="text-amber-200 font-semibold">03. Bảo quản đa vùng nhiệt</p>
+            <p class="text-slate-300 mt-2">Từng nhóm nguyên liệu được giữ ở dải nhiệt độ riêng để ổn định chất lượng.</p>
+          </article>
+          <article class="card-glass p-5">
+            <p class="text-amber-200 font-semibold">04. Chế biến theo phiên</p>
+            <p class="text-slate-300 mt-2">Bếp chỉ nhận lượng vừa đủ cho từng ca phục vụ, hạn chế tồn và giữ độ tươi.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-shell">
+    <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
+      <div class="space-y-5">
+        <p class="text-sm text-amber-200/80 tracking-[0.25em] uppercase">Con người & dịch vụ</p>
+        <h2 class="section-title about-section-title">Đội ngũ vận hành được đào tạo như một dàn nhạc</h2>
+        <p class="about-body text-slate-300">
+          Từ bếp nóng, bếp lạnh, sommelier đến service captain đều phối hợp theo checklist vận hành
+          chi tiết để đảm bảo tốc độ, độ chính xác và trải nghiệm liền mạch cho từng bàn.
+        </p>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div class="card-glass p-5">
+            <p class="text-sm text-amber-200/80">Chef de Cuisine</p>
+            <p class="text-lg mt-2">Pierre Lambert</p>
           </div>
-          <ul class="space-y-3 text-slate-300">
-            <li>Chef de Cuisine: Pierre Lambert</li>
-            <li>Head Sommelier: Lý Minh Châu</li>
-            <li>Executive Chef: Nguyễn Tuấn Kiệt</li>
-          </ul>
+          <div class="card-glass p-5">
+            <p class="text-sm text-amber-200/80">Executive Chef</p>
+            <p class="text-lg mt-2">Nguyễn Tuấn Kiệt</p>
+          </div>
+          <div class="card-glass p-5">
+            <p class="text-sm text-amber-200/80">Head Sommelier</p>
+            <p class="text-lg mt-2">Lý Minh Châu</p>
+          </div>
         </div>
       </div>
+      <div class="image-frame">
+        <Image
+          src={seafoodRoom}
+          alt="Không gian phòng ăn riêng tại Aurelian Seafood"
+          class="w-full h-[320px] md:h-[420px] object-cover"
+          widths={[600, 900, 1200]}
+          sizes="(max-width: 1024px) 100vw, 40vw"
+          format="webp"
+          quality={72}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </div>
   </section>
+
+  <section class="section-shell pt-0">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="card-glass p-8 md:p-10 grid md:grid-cols-[1fr_auto] gap-6 items-center about-cta">
+        <div>
+          <p class="text-sm text-amber-200/80 tracking-[0.2em] uppercase">Khám phá trực tiếp</p>
+          <h2 class="about-section-title text-3xl md:text-4xl mt-2">Đặt lịch tham quan không gian và dùng thử set menu</h2>
+          <p class="about-body text-slate-200/85 mt-3">Đội ngũ Aurelian hỗ trợ tư vấn concept bàn tiệc, pairing rượu và ngân sách phù hợp.</p>
+        </div>
+        <a class="btn-primary inline-block text-center w-full md:w-auto" href="/lien-he">Đặt lịch ngay</a>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .timeline-grid {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .about-cta {
+      background:
+        radial-gradient(750px 260px at 8% 0%, rgba(217, 164, 65, 0.2), transparent 70%),
+        radial-gradient(640px 220px at 95% 100%, rgba(123, 210, 199, 0.14), transparent 75%),
+        rgba(18, 21, 25, 0.7);
+    }
+
+    .about-hero-title {
+      line-height: 1.15;
+      letter-spacing: 0.01em;
+    }
+
+    .about-section-title {
+      line-height: 1.2;
+      letter-spacing: 0.005em;
+    }
+
+    .about-body {
+      line-height: 1.72;
+    }
+
+    @media (max-width: 767px) {
+      .about-hero-title {
+        font-size: clamp(2.05rem, 5.2vw + 1rem, 2.7rem);
+        line-height: 1.22;
+        letter-spacing: 0;
+      }
+
+      .about-section-title {
+        font-size: clamp(1.7rem, 3vw + 1rem, 2.1rem);
+        line-height: 1.28;
+        letter-spacing: 0;
+      }
+
+      .about-body {
+        line-height: 1.78;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .timeline-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .timeline-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+  </style>
 </SiteLayout>

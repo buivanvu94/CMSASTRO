@@ -8,6 +8,11 @@ interface MediaLibraryProps {
   multiple?: boolean;
 }
 
+interface MediaFolder {
+  name: string;
+  count: number;
+}
+
 export default function MediaLibrary({ mode = 'library', onSelect, multiple = false }: MediaLibraryProps) {
   const [media, setMedia] = useState<Media[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<Media[]>([]);
@@ -16,7 +21,8 @@ export default function MediaLibrary({ mode = 'library', onSelect, multiple = fa
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [folder, setFolder] = useState('');
-  const [folders, setFolders] = useState<string[]>([]);
+  const [folders, setFolders] = useState<MediaFolder[]>([]);
+  const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
 
   useEffect(() => {
     loadMedia();
@@ -32,10 +38,12 @@ export default function MediaLibrary({ mode = 'library', onSelect, multiple = fa
         search: search || undefined,
         folder: folder || undefined,
       });
-      setMedia(response.data);
-      setTotalPages(response.pagination.totalPages);
+      setMedia(Array.isArray(response.data) ? response.data : []);
+      setTotalPages(response.pagination?.totalPages || 1);
+      setFeedback(null);
     } catch (error) {
       console.error('Failed to load media:', error);
+      setFeedback({ type: 'error', message: 'Khong tai duoc danh sach media. Vui long thu lai.' });
     } finally {
       setIsLoading(false);
     }
@@ -44,10 +52,20 @@ export default function MediaLibrary({ mode = 'library', onSelect, multiple = fa
   const loadFolders = async () => {
     try {
       const folderList = await mediaApi.getFolders();
-      setFolders(folderList);
+      setFolders(Array.isArray(folderList) ? folderList : []);
     } catch (error) {
       console.error('Failed to load folders:', error);
+      setFeedback({ type: 'error', message: 'Khong tai duoc danh sach folder media.' });
     }
+  };
+
+  const resolveMediaSrc = (item: Media): string => {
+    const rawPath = item.thumbnail_path || item.path || '';
+    if (!rawPath) return '';
+    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) return rawPath;
+    const apiBase = import.meta.env.PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+    const mediaBase = apiBase.replace(/\/api\/v\d+\/?$/, '');
+    return `${mediaBase}${rawPath.startsWith('/') ? '' : '/'}${rawPath}`;
   };
 
   const handleFileUpload = async (files: FileList | null) => {
@@ -60,10 +78,11 @@ export default function MediaLibrary({ mode = 'library', onSelect, multiple = fa
       } else {
         await mediaApi.uploadMultiple(fileArray, folder || undefined);
       }
+      setFeedback({ type: 'success', message: 'Upload media thanh cong.' });
       loadMedia();
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Upload failed. Please try again.');
+      setFeedback({ type: 'error', message: 'Upload that bai. Vui long thu lai.' });
     }
   };
 
@@ -93,15 +112,30 @@ export default function MediaLibrary({ mode = 'library', onSelect, multiple = fa
 
     try {
       await mediaApi.delete(id);
+      setFeedback({ type: 'success', message: 'Xoa media thanh cong.' });
       loadMedia();
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('Delete failed. Please try again.');
+      setFeedback({ type: 'error', message: 'Xoa media that bai. Vui long thu lai.' });
     }
   };
 
   return (
     <div className="space-y-4">
+      {feedback && (
+        <div
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            feedback.type === 'error'
+              ? 'border-rose-400/40 bg-rose-500/10 text-rose-200'
+              : 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          {feedback.message}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <input
@@ -119,8 +153,8 @@ export default function MediaLibrary({ mode = 'library', onSelect, multiple = fa
         >
           <option value="">All folders</option>
           {folders.map((f) => (
-            <option key={f} value={f}>
-              {f}
+            <option key={f.name} value={f.name}>
+              {f.name} ({f.count})
             </option>
           ))}
         </select>
@@ -156,7 +190,7 @@ export default function MediaLibrary({ mode = 'library', onSelect, multiple = fa
                 <div className="aspect-square bg-zinc-900/80 flex items-center justify-center">
                   {item.mime_type.startsWith('image/') ? (
                     <img
-                      src={`${import.meta.env.PUBLIC_API_URL?.replace('/api', '')}${item.thumbnail_path || item.path}`}
+                      src={resolveMediaSrc(item)}
                       alt={item.alt_text || item.original_name}
                       className="w-full h-full object-cover"
                     />

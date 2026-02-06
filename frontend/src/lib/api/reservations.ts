@@ -4,15 +4,15 @@ import type { PaginatedResponse } from './users';
 export interface Reservation {
   id: number;
   customer_name: string;
-  customer_email: string | null;
+  customer_email: string;
   customer_phone: string;
+  reservation_date: string;
+  reservation_time: string;
   party_size: number;
-  date: string;
-  time: string;
-  special_request: string | null;
-  handled_by: number | null;
+  special_requests: string | null;
+  handler_id: number | null;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
-  note: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
   handler?: {
@@ -24,12 +24,12 @@ export interface Reservation {
 
 export interface CreateReservationData {
   customer_name: string;
-  customer_email?: string;
+  customer_email: string;
   customer_phone: string;
   party_size: number;
-  date: string;
-  time: string;
-  special_request?: string;
+  reservation_date: string;
+  reservation_time: string;
+  special_requests?: string;
 }
 
 export interface UpdateReservationData {
@@ -37,20 +37,19 @@ export interface UpdateReservationData {
   customer_email?: string;
   customer_phone?: string;
   party_size?: number;
-  date?: string;
-  time?: string;
-  special_request?: string;
-  handled_by?: number;
-  note?: string;
+  reservation_date?: string;
+  reservation_time?: string;
+  special_requests?: string;
+  handler_id?: number;
+  notes?: string;
 }
 
 export interface ReservationListParams {
   page?: number;
   limit?: number;
   status?: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
-  date?: string;
-  date_from?: string;
-  date_to?: string;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 export interface UpdateStatusData {

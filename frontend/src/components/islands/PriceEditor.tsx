@@ -45,13 +45,8 @@ export default function PriceEditor({ prices, onChange }: PriceEditorProps) {
   };
 
   const handleSave = () => {
-    if (!formData.name.trim()) {
-      alert('Variant name is required');
-      return;
-    }
-
-    if (formData.price <= 0) {
-      alert('Price must be greater than 0');
+    if (formData.price < 0) {
+      alert('Gia phai lon hon hoac bang 0');
       return;
     }
 
@@ -121,7 +116,7 @@ export default function PriceEditor({ prices, onChange }: PriceEditorProps) {
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-medium text-amber-50">{price.name}</span>
+                  <span className="text-base font-medium text-amber-50">{price.name?.trim() || 'Don gia mac dinh'}</span>
                   {price.is_default && (
                     <span className="px-2 py-1 text-sm font-semibold bg-amber-500/15 text-amber-200 rounded">
                       Default
@@ -193,13 +188,13 @@ export default function PriceEditor({ prices, onChange }: PriceEditorProps) {
           
           <div>
             <label className="block text-base font-medium text-amber-100/90 mb-2">
-              Variant Name <span className="text-rose-400">*</span>
+              Variant Name (Optional)
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., Small, Medium, Large"
+              placeholder="De trong neu la don gia mac dinh"
               className={inputClass}
             />
           </div>

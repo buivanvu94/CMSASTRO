@@ -21,7 +21,7 @@ export default function ReservationTable() {
 
       const response = await reservationsApi.getAll(params);
       setReservations(response.data);
-      setTotalPages(response.pagination.totalPages);
+      setTotalPages(response.pagination?.totalPages || 1);
     } catch (error) {
       console.error('Failed to load reservations:', error);
     } finally {
@@ -59,12 +59,14 @@ export default function ReservationTable() {
       confirmed: 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30',
       completed: 'bg-zinc-500/30 text-zinc-100 border border-zinc-400/30',
       cancelled: 'bg-rose-500/20 text-rose-200 border border-rose-400/30',
+      no_show: 'bg-orange-500/20 text-orange-200 border border-orange-400/30',
     };
     return colors[status as keyof typeof colors] || 'bg-zinc-500/30 text-zinc-100 border border-zinc-400/30';
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: string, time: string) => {
+    const normalizedTime = (time || '').slice(0, 5);
+    return new Date(`${date}T${normalizedTime}`).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -86,6 +88,7 @@ export default function ReservationTable() {
           <option value="confirmed">Confirmed</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
+          <option value="no_show">No Show</option>
         </select>
       </div>
 
@@ -113,23 +116,24 @@ export default function ReservationTable() {
                     <tr key={reservation.id} className="hover:bg-zinc-900/60 transition-colors">
                       <td className="px-6 py-4 text-base font-semibold text-amber-100">{reservation.customer_name}</td>
                       <td className="px-6 py-4 text-base text-zinc-200">
-                        <div>{reservation.customer_email}</div>
+                        <div>{reservation.customer_email || '-'}</div>
                         <div className="text-sm text-amber-200/70">{reservation.customer_phone}</div>
                       </td>
                       <td className="px-6 py-4 text-base text-zinc-200">
-                        {formatDate(`${reservation.date}T${reservation.time}`)}
+                        {formatDate(reservation.reservation_date, reservation.reservation_time)}
                       </td>
                       <td className="px-6 py-4 text-base text-zinc-200">{reservation.party_size} people</td>
                       <td className="px-6 py-4">
                         <select
                           value={reservation.status}
                           onChange={(e) => handleStatusUpdate(reservation.id, e.target.value as Reservation['status'])}
-                          className={`text-sm font-semibold rounded-full px-3 py-2 outline-none ${getStatusBadge(reservation.status)}`}
+                          className={`text-sm font-semibold rounded-full px-3 py-2 outline-none appearance-none bg-zinc-950/90 ${getStatusBadge(reservation.status)}`}
                         >
-                          <option value="pending">Pending</option>
-                          <option value="confirmed">Confirmed</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
+                          <option value="pending" className="bg-zinc-950 text-amber-100">Pending</option>
+                          <option value="confirmed" className="bg-zinc-950 text-amber-100">Confirmed</option>
+                          <option value="completed" className="bg-zinc-950 text-amber-100">Completed</option>
+                          <option value="cancelled" className="bg-zinc-950 text-amber-100">Cancelled</option>
+                          <option value="no_show" className="bg-zinc-950 text-amber-100">No Show</option>
                         </select>
                       </td>
                       <td className="px-6 py-4 text-right text-sm font-medium">

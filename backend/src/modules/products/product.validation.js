@@ -92,7 +92,7 @@ const priceVariantSchema = [
     .isFloat({ min: 0 })
     .withMessage('Price must be a non-negative number'),
   body('prices.*.sale_price')
-    .optional()
+    .optional({ nullable: true })
     .isFloat({ min: 0 })
     .withMessage('Sale price must be a non-negative number'),
   body('prices.*.is_default')
@@ -124,11 +124,11 @@ export const createProductValidation = [
     .isString()
     .trim(),
   body('product_category_id')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1 })
     .withMessage('Product category ID must be a positive integer'),
   body('featured_image_id')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1 })
     .withMessage('Featured image ID must be a positive integer'),
   body('gallery')
@@ -186,7 +186,7 @@ export const updateProductValidation = [
     .isLength({ max: 255 })
     .withMessage('Product name must not exceed 255 characters'),
   body('slug')
-    .optional()
+    .optional({ checkFalsy: true })
     .isString()
     .trim()
     .matches(/^[a-z0-9-]+$/)
@@ -199,11 +199,11 @@ export const updateProductValidation = [
     .isString()
     .trim(),
   body('product_category_id')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1 })
     .withMessage('Product category ID must be a positive integer'),
   body('featured_image_id')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1 })
     .withMessage('Featured image ID must be a positive integer'),
   body('gallery')
@@ -237,7 +237,12 @@ export const updateProductValidation = [
     .isString()
     .trim()
     .isLength({ max: 160 })
-    .withMessage('SEO description must not exceed 160 characters')
+    .withMessage('SEO description must not exceed 160 characters'),
+  body('prices')
+    .optional()
+    .isArray()
+    .withMessage('Prices must be an array'),
+  ...priceVariantSchema
 ];
 
 /**
@@ -266,7 +271,7 @@ export const addPriceVariantValidation = [
     .isFloat({ min: 0 })
     .withMessage('Price must be a non-negative number'),
   body('sale_price')
-    .optional()
+    .optional({ nullable: true })
     .isFloat({ min: 0 })
     .withMessage('Sale price must be a non-negative number'),
   body('is_default')
@@ -300,7 +305,7 @@ export const updatePriceVariantValidation = [
     .isFloat({ min: 0 })
     .withMessage('Price must be a non-negative number'),
   body('sale_price')
-    .optional()
+    .optional({ nullable: true })
     .isFloat({ min: 0 })
     .withMessage('Sale price must be a non-negative number'),
   body('is_default')
