@@ -3,3 +3,8 @@ node_modules/
 
 # Windows null device
 nul
+
+# Local database/archive artifacts
+backend/backend.zip
+backend/src.zip
+backend/cmsastra.sql
