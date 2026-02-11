@@ -29,6 +29,31 @@ router.get(
  * Get settings by group
  */
 router.get(
+  '/booking-email',
+  authenticate,
+  authorize(['admin']),
+  settingController.getBookingEmailConfig
+);
+
+router.put(
+  '/booking-email',
+  authenticate,
+  authorize(['admin']),
+  settingValidation.updateBookingEmailConfigValidation,
+  settingValidation.handleValidationErrors,
+  settingController.updateBookingEmailConfig
+);
+
+router.post(
+  '/booking-email/test',
+  authenticate,
+  authorize(['admin']),
+  settingValidation.testBookingSmtpValidation,
+  settingValidation.handleValidationErrors,
+  settingController.testBookingEmailConfig
+);
+
+router.get(
   '/group/:group',
   authenticate,
   authorize(['admin']),

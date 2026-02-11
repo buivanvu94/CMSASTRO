@@ -123,6 +123,42 @@ export const findAll = async ({
 };
 
 /**
+ * Find public post categories for frontend pages
+ * @param {Object} options - Query options
+ * @returns {Promise<Object>} - Categories and pagination info
+ */
+export const findPublic = async ({
+  page = 1,
+  limit = 100,
+  status = 'active'
+} = {}) => {
+  const offset = (page - 1) * limit;
+  const where = {
+    type: 'post'
+  };
+
+  if (status) {
+    where.status = status;
+  }
+
+  const { count, rows } = await Category.findAndCountAll({
+    where,
+    limit,
+    offset,
+    order: [['sort_order', 'ASC'], ['name', 'ASC']],
+    attributes: ['id', 'name', 'slug', 'sort_order']
+  });
+
+  return {
+    categories: rows,
+    total: count,
+    page,
+    limit,
+    totalPages: Math.ceil(count / limit)
+  };
+};
+
+/**
  * Find categories in tree structure
  * @param {string} type - Category type (post/product)
  * @returns {Promise<Array>} - Tree structure of categories
@@ -404,6 +440,7 @@ export const getStats = async () => {
 
 export default {
   findAll,
+  findPublic,
   findTree,
   findById,
   findBySlug,

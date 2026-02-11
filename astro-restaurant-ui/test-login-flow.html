@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Login Flow</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+    }
+    .log {
+      margin: 5px 0;
+      padding: 5px;
+      background: #2a2a2a;
+      border-left: 3px solid #00ff00;
+    }
+    .error {
+      border-left-color: #ff0000;
+      color: #ff6666;
+    }
+    .success {
+      border-left-color: #00ff00;
+      color: #66ff66;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      background: #00ff00;
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #00cc00;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      background: #2a2a2a;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔐 Login Flow Debugger</h1>
+  
+  <div>
+    <input type="email" id="email" placeholder="Email" value="buivuit@gmail.com">
+    <input type="password" id="password" placeholder="Password" value="Buivanvu@#999">
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="checkStorage()">Check Storage</button>
+    <button onclick="clearStorage()">Clear Storage</button>
+  </div>
+  
+  <div id="logs"></div>
+
+  <script>
+    const API_URL = 'https://vuapiastronhahang.nguyenluan.vn/api/v1';
+    
+    function log(message, type = 'log') {
+      const div = document.createElement('div');
+      div.className = `log ${type}`;
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      document.getElementById('logs').appendChild(div);
+      console.log(message);
+    }
+
+    function checkStorage() {
+      log('=== Checking localStorage ===');
+      const accessToken = localStorage.getItem('access_token');
+      const refreshToken = localStorage.getItem('refresh_token');
+      
+      if (accessToken) {
+        log(`✅ Access Token: ${accessToken.substring(0, 50)}...`, 'success');
+      } else {
+        log('❌ No Access Token found', 'error');
+      }
+      
+      if (refreshToken) {
+        log(`✅ Refresh Token: ${refreshToken.substring(0, 50)}...`, 'success');
+      } else {
+        log('❌ No Refresh Token found', 'error');
+      }
+      
+      log(`Total localStorage items: ${localStorage.length}`);
+    }
+
+    function clearStorage() {
+      localStorage.clear();
+      log('🗑️ localStorage cleared', 'success');
+      checkStorage();
+    }
+
+    async function testLogin() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      log('=== Starting Login Test ===');
+      log(`📧 Email: ${email}`);
+      log(`🔑 Password: ${password.replace(/./g, '*')}`);
+      
+      try {
+        // Step 1: Call login API
+        log('📡 Calling login API...');
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password })
+        });
+        
+        log(`📊 Response Status: ${response.status} ${response.statusText}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          log(`❌ Login failed: ${JSON.stringify(errorData)}`, 'error');
+          return;
+        }
+        
+        // Step 2: Parse response
+        const data = await response.json();
+        log(`✅ Login successful!`, 'success');
+        log(`📦 Response data: ${JSON.stringify(data, null, 2)}`);
+        
+        // Step 3: Extract tokens
+        const { accessToken, refreshToken, user } = data.data;
+        log(`🔑 Access Token received: ${accessToken ? 'YES' : 'NO'}`);
+        log(`🔑 Refresh Token received: ${refreshToken ? 'YES' : 'NO'}`);
+        log(`👤 User: ${user.email} (${user.role})`);
+        
+        // Step 4: Store tokens
+        log('💾 Storing tokens in localStorage...');
+        localStorage.setItem('access_token', accessToken);
+        localStorage.setItem('refresh_token', refreshToken);
+        
+        // Step 5: Verify storage
+        await new Promise(resolve => setTimeout(resolve, 100));
+        log('🔍 Verifying storage...');
+        checkStorage();
+        
+        // Step 6: Test if we can access dashboard
+        log('🚪 Testing dashboard access...');
+        const storedToken = localStorage.getItem('access_token');
+        if (storedToken) {
+          log('✅ Token is stored, dashboard should be accessible', 'success');
+          log('🚀 You can now navigate to /dashboard');
+        } else {
+          log('❌ Token NOT stored! This is the problem!', 'error');
+        }
+        
+      } catch (error) {
+        log(`❌ Error: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
+
+    // Check storage on load
+    window.addEventListener('load', () => {
+      log('🔄 Page loaded, checking initial state...');
+      checkStorage();
+    });
+  </script>
+</body>
+</html>

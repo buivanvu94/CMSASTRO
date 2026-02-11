@@ -1,0 +1,117 @@
+﻿---
+import type { Product, ProductPrice } from '@/lib/api/products';
+import seafoodHero from '@/assets/images/seafood-hero.jpg';
+import seafoodRoom from '@/assets/images/seafood-room.jpg';
+import seafoodAbout from '@/assets/images/seafood-about.jpg';
+import { fetchJsonWithTimeout, getOrSetCache } from '@/lib/server/perf';
+
+interface HomeProductItem {
+  id: string;
+  name: string;
+  desc: string;
+  price: string;
+  imageUrl: string;
+}
+
+const apiBaseUrl = import.meta.env.PUBLIC_API_URL || 'https://vuapiastronhahang.nguyenluan.vn/api/v1';
+const uploadsBaseUrl = apiBaseUrl.replace(/\/api\/v\d+\/?$/, '');
+const fallbackImages = [seafoodHero.src, seafoodRoom.src, seafoodAbout.src];
+const CACHE_TTL = 60 * 1000;
+
+const formatCurrencyVnd = (value: number): string => `${new Intl.NumberFormat('vi-VN').format(value)} VND`;
+
+const toAbsoluteImageUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${uploadsBaseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
+const pickDefaultPrice = (prices: ProductPrice[] | undefined): number | null => {
+  if (!prices || prices.length === 0) return null;
+  const activePrices = prices.filter((price) => price.status === 'active');
+  const defaultPrice = activePrices.find((price) => price.is_default) || activePrices[0];
+  if (!defaultPrice) return null;
+  const value = defaultPrice.sale_price ?? defaultPrice.price;
+  return Number(value);
+};
+
+const normalizeDesc = (description: string | null | undefined): string => {
+  if (!description) return 'Hương vị hải sản cao cấp theo phong cách hoàng gia.';
+  return description.length > 95 ? `${description.slice(0, 95).trim()}...` : description;
+};
+
+const fetchHomeProducts = async (): Promise<HomeProductItem[]> => {
+  try {
+    const payload = await fetchJsonWithTimeout<{ data?: Product[] }>(
+      `${apiBaseUrl}/products/public?page=1&limit=12`,
+      { headers: { accept: 'application/json' } },
+      3200
+    );
+    const products: Product[] = Array.isArray(payload?.data) ? payload.data : [];
+
+    return products.map((product, index) => {
+      const priceValue = pickDefaultPrice(product.prices);
+      const imageUrl = toAbsoluteImageUrl(product.featuredImage?.thumbnail_path)
+        || toAbsoluteImageUrl(product.featuredImage?.path)
+        || fallbackImages[index % fallbackImages.length];
+      const shortDescription = product.short_description || product.description;
+
+      return {
+        id: String(index + 1).padStart(2, '0'),
+        name: product.name,
+        desc: normalizeDesc(shortDescription),
+        price: priceValue !== null ? formatCurrencyVnd(priceValue) : 'Liên hệ',
+        imageUrl
+      };
+    });
+  } catch {
+    return [];
+  }
+};
+
+const menuItems = await getOrSetCache('home:signature-menu:v1', CACHE_TTL, fetchHomeProducts);
+---
+
+<div>
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+    <div>
+      <p class="text-sm text-amber-200/80 tracking-[0.25em] uppercase">Signature</p>
+      <h2 class="section-title">Thực đơn</h2>
+      <p class="section-subtitle">Các món được ưa chuộng nhất, trình bày theo dạng thực đơn để xem nhanh và dễ chọn món.</p>
+    </div>
+    <a class="btn-outline btn-compact" href="/menu">Xem toàn bộ thực đơn</a>
+  </div>
+
+  {menuItems.length > 0 ? (
+    <div class="menu-catalog-grid">
+      {menuItems.map((item) => (
+        <article class="card-glass menu-catalog-card">
+          <div class="menu-catalog-media-wrap">
+            <img
+              src={item.imageUrl}
+              alt={item.name}
+              class="menu-catalog-media"
+              width="180"
+              height="135"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <div class="menu-catalog-content">
+            <div class="menu-item-top">
+              <p class="menu-item-name">
+                <span class="text-amber-200/80 mr-2 text-sm">{item.id}</span>{item.name}
+              </p>
+              <span class="menu-item-price">{item.price}</span>
+            </div>
+            <p class="menu-item-desc">{item.desc}</p>
+          </div>
+        </article>
+      ))}
+    </div>
+  ) : (
+    <div class="card-glass p-8 text-center text-slate-200/90">
+      Chưa có sản phẩm xuất bản để hiển thị trên trang chủ.
+    </div>
+  )}
+</div>

@@ -1,43 +1,100 @@
 import nodemailer from 'nodemailer';
 import { config } from '../config/index.js';
 import logger from './logger.js';
+import { getBookingEmailRuntimeConfig } from '../modules/settings/setting.service.js';
 
-let transporter;
+let transporterCache = null;
+let transporterSignature = null;
 
-const hasMailConfig = () => {
-  return Boolean(config.mail.host && config.mail.port && config.mail.from);
+const toResolvedConfig = async (overrideConfig = null) => {
+  const runtimeConfig = overrideConfig || await getBookingEmailRuntimeConfig();
+  const smtpHost = String(runtimeConfig.smtpHost || config.mail.host || '').trim();
+  const smtpPort = parseInt(runtimeConfig.smtpPort, 10) || config.mail.port || 587;
+  const smtpSecure = Boolean(runtimeConfig.smtpSecure);
+  const smtpUser = String(runtimeConfig.smtpUser || config.mail.user || '').trim();
+  const smtpPass = String(runtimeConfig.smtpPass || config.mail.pass || '');
+  const smtpFrom = String(runtimeConfig.smtpFrom || config.mail.from || '').trim();
+  const smtpReplyTo = String(runtimeConfig.smtpReplyTo || '').trim();
+
+  return {
+    smtpHost,
+    smtpPort,
+    smtpSecure,
+    smtpUser,
+    smtpPass,
+    smtpFrom,
+    smtpReplyTo
+  };
 };
 
-const getTransporter = () => {
-  if (transporter) return transporter;
+const hasMailConfig = (mailConfig) => {
+  return Boolean(mailConfig.smtpHost && mailConfig.smtpPort && mailConfig.smtpFrom);
+};
+
+const getSignature = (mailConfig) => {
+  return [
+    mailConfig.smtpHost,
+    mailConfig.smtpPort,
+    mailConfig.smtpSecure,
+    mailConfig.smtpUser,
+    mailConfig.smtpPass
+  ].join('|');
+};
+
+const getTransporter = (mailConfig) => {
+  const signature = getSignature(mailConfig);
+  if (transporterCache && transporterSignature === signature) {
+    return transporterCache;
+  }
 
   const transportOptions = {
-    host: config.mail.host,
-    port: config.mail.port,
-    secure: config.mail.secure
+    host: mailConfig.smtpHost,
+    port: mailConfig.smtpPort,
+    secure: mailConfig.smtpSecure
   };
 
-  if (config.mail.user && config.mail.pass) {
+  if (mailConfig.smtpUser && mailConfig.smtpPass) {
     transportOptions.auth = {
-      user: config.mail.user,
-      pass: config.mail.pass
+      user: mailConfig.smtpUser,
+      pass: mailConfig.smtpPass
     };
   }
 
-  transporter = nodemailer.createTransport(transportOptions);
-  return transporter;
+  transporterCache = nodemailer.createTransport(transportOptions);
+  transporterSignature = signature;
+  return transporterCache;
 };
 
-export const sendMail = async ({ to, subject, html, text }) => {
-  if (!hasMailConfig()) {
+export const verifyMailConnection = async (overrideConfig = null) => {
+  const resolvedConfig = await toResolvedConfig(overrideConfig);
+
+  if (!hasMailConfig(resolvedConfig)) {
+    return { ok: false, reason: 'smtp_not_configured' };
+  }
+
+  try {
+    const transporter = getTransporter(resolvedConfig);
+    await transporter.verify();
+    return { ok: true };
+  } catch (error) {
+    logger.error('SMTP verification failed', { message: error.message });
+    return { ok: false, reason: 'verify_failed', message: error.message };
+  }
+};
+
+export const sendMail = async ({ to, subject, html, text, overrideConfig = null }) => {
+  const resolvedConfig = await toResolvedConfig(overrideConfig);
+
+  if (!hasMailConfig(resolvedConfig)) {
     logger.warn('SMTP is not configured. Skipping email send.');
     return { sent: false, reason: 'smtp_not_configured' };
   }
 
   try {
-    const mailTransport = getTransporter();
+    const mailTransport = getTransporter(resolvedConfig);
     const info = await mailTransport.sendMail({
-      from: config.mail.from,
+      from: resolvedConfig.smtpFrom,
+      replyTo: resolvedConfig.smtpReplyTo || undefined,
       to,
       subject,
       html,
@@ -48,7 +105,7 @@ export const sendMail = async ({ to, subject, html, text }) => {
     return { sent: true, messageId: info.messageId };
   } catch (error) {
     logger.error('Failed to send email', { message: error.message, to });
-    return { sent: false, reason: 'send_failed' };
+    return { sent: false, reason: 'send_failed', message: error.message };
   }
 };
 
@@ -85,5 +142,6 @@ export const sendResetPasswordEmail = async ({ to, fullName, resetUrl, expiresMi
 
 export default {
   sendMail,
-  sendResetPasswordEmail
+  sendResetPasswordEmail,
+  verifyMailConnection
 };

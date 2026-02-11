@@ -1,0 +1,45 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import MenuCatalog from '@/components/menu/MenuCatalog.astro';
+
+export const prerender = false;
+
+const MENU_CACHE_CONTROL = 'public, max-age=60, s-maxage=180, stale-while-revalidate=300';
+Astro.response.headers.set('Cache-Control', MENU_CACHE_CONTROL);
+---
+
+<SiteLayout title="Thực đơn - Aurelian Seafood" description="Toàn bộ thực đơn hải sản cao cấp theo từng danh mục">
+  <section class="relative overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-8 right-0 w-72 h-72 bg-teal-400/20 rounded-full blur-3xl"></div>
+    <div class="max-w-6xl mx-auto px-6 pt-20 pb-14">
+      <p class="menu-kicker fade-up">Aurelian Menu</p>
+      <h1 class="menu-page-hero-title fade-up delay-1">Thực đơn hải sản cao cấp</h1>
+      <p class="menu-page-lead fade-up delay-2">
+        Khám phá toàn bộ món ăn theo từng danh mục, trình bày tinh tế, nguyên liệu tuyển chọn mỗi ngày và mức giá minh bạch.
+      </p>
+    </div>
+  </section>
+
+  <section class="section-shell pt-0" data-menu-page>
+    <div class="max-w-6xl mx-auto px-6">
+      <MenuCatalog server:defer>
+        <div slot="fallback" class="card-glass p-9 text-center text-slate-200/90">
+          Đang tải thực đơn...
+        </div>
+      </MenuCatalog>
+    </div>
+  </section>
+
+  <section class="section-shell">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="card-glass p-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="text-3xl">Bạn muốn tư vấn set menu riêng?</h2>
+          <p class="text-slate-300">Đội ngũ Aurelian hỗ trợ nhanh theo số khách, ngân sách và loại sự kiện.</p>
+        </div>
+        <a class="btn-primary" href="/lien-he">Liên hệ đặt bàn</a>
+      </div>
+    </div>
+  </section>
+</SiteLayout>

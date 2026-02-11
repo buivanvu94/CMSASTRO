@@ -1,0 +1,301 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import BlogSidebar from '@/components/blog/BlogSidebar.astro';
+import type { Post } from '@/lib/api/posts';
+import { fetchJsonWithTimeout, getOrSetCache } from '@/lib/server/perf';
+import seafoodHero from '@/assets/images/seafood-hero.jpg';
+import seafoodRoom from '@/assets/images/seafood-room.jpg';
+import seafoodAbout from '@/assets/images/seafood-about.jpg';
+
+export const prerender = false;
+
+interface BlogPostItem {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  categoryName: string;
+  categorySlug: string;
+  publishedAt: string;
+  imageUrl: string;
+}
+
+interface BlogCategoryItem {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+interface PostsPageResult {
+  items: BlogPostItem[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+const apiBaseUrl = import.meta.env.PUBLIC_API_URL || 'https://vuapiastronhahang.nguyenluan.vn/api/v1';
+const uploadsBaseUrl = apiBaseUrl.replace(/\/api\/v\d+\/?$/, '');
+const fallbackImages = [seafoodHero.src, seafoodRoom.src, seafoodAbout.src];
+const pageSize = 9;
+const BLOG_CACHE_CONTROL = 'public, max-age=60, s-maxage=180, stale-while-revalidate=300';
+const CACHE_TTL = {
+  categories: 10 * 60 * 1000,
+  postsPage: 45 * 1000
+} as const;
+
+Astro.response.headers.set('Cache-Control', BLOG_CACHE_CONTROL);
+
+const requestUrl = new URL(Astro.request.url);
+const pageParam = Number.parseInt(requestUrl.searchParams.get('page') || '1', 10);
+const currentPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+const selectedCategorySlug = (requestUrl.searchParams.get('category') || 'all').trim();
+
+const toAbsoluteImageUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${uploadsBaseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
+const normalizeExcerpt = (excerpt: string | null | undefined, content: string | null | undefined): string => {
+  const source = excerpt?.trim() || content?.replace(/<[^>]+>/g, '').trim() || '';
+  if (!source) return 'Khám phá góc nhìn ẩm thực và trải nghiệm fine dining tại Aurelian Seafood.';
+  return source.length > 160 ? `${source.slice(0, 160).trim()}...` : source;
+};
+
+const formatDateVi = (input: string | null | undefined): string => {
+  if (!input) return 'Mới cập nhật';
+  const parsed = new Date(input);
+  if (Number.isNaN(parsed.getTime())) return 'Mới cập nhật';
+  return parsed.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const mapCategoriesFromPosts = (posts: Post[]): BlogCategoryItem[] => {
+  const map = new Map<number, BlogCategoryItem>();
+  posts.forEach((post) => {
+    if (post.category?.id && post.category.slug) {
+      map.set(post.category.id, {
+        id: post.category.id,
+        name: post.category.name,
+        slug: post.category.slug
+      });
+    }
+  });
+  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+};
+
+const fetchBlogCategories = async (): Promise<BlogCategoryItem[]> => {
+  try {
+    const payload = await fetchJsonWithTimeout<{ data?: BlogCategoryItem[] }>(
+      `${apiBaseUrl}/categories/public?page=1&limit=100`,
+      { headers: { accept: 'application/json' } },
+      2800
+    );
+    const categories = Array.isArray(payload?.data) ? payload.data : [];
+    if (categories.length > 0) {
+      return categories
+        .filter((item) => Number.isFinite(item.id) && Boolean(item.slug))
+        .sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+    }
+  } catch {
+    // Fallback to post-derived categories if backend endpoint is unavailable.
+  }
+
+  try {
+    const fallback = await fetchJsonWithTimeout<{ data?: Post[] }>(
+      `${apiBaseUrl}/posts/public?page=1&limit=100`,
+      { headers: { accept: 'application/json' } },
+      3200
+    );
+    const posts = Array.isArray(fallback?.data) ? fallback.data : [];
+    return mapCategoriesFromPosts(posts);
+  } catch {
+    return [];
+  }
+};
+
+const fetchPostsPage = async (page: number, categoryId: number | null): Promise<PostsPageResult> => {
+  try {
+    const query = new URLSearchParams({
+      page: String(page),
+      limit: String(pageSize)
+    });
+    if (categoryId) query.set('categoryId', String(categoryId));
+
+    const payload = await fetchJsonWithTimeout<{ data?: Post[]; pagination?: Record<string, unknown> }>(
+      `${apiBaseUrl}/posts/public?${query.toString()}`,
+      { headers: { accept: 'application/json' } },
+      3500
+    );
+    const posts: Post[] = Array.isArray(payload?.data) ? payload.data : [];
+    const total = Number(payload?.pagination?.total || 0);
+    const normalizedPage = Number(payload?.pagination?.page || page || 1);
+    const totalPages = Math.max(1, Number(payload?.pagination?.totalPages || payload?.pagination?.total_pages || 1));
+
+    const items = posts.map((post, index) => ({
+      id: post.id,
+      slug: post.slug,
+      title: post.title,
+      excerpt: normalizeExcerpt(post.excerpt, post.content),
+      categoryName: post.category?.name || 'Ẩm thực',
+      categorySlug: post.category?.slug || 'am-thuc',
+      publishedAt: formatDateVi(post.published_at || post.created_at),
+      imageUrl:
+        toAbsoluteImageUrl(post.featuredImage?.thumbnail_path)
+        || toAbsoluteImageUrl(post.featuredImage?.path)
+        || fallbackImages[index % fallbackImages.length]
+    }));
+
+    return {
+      items,
+      total,
+      page: normalizedPage,
+      totalPages
+    };
+  } catch {
+    return { items: [], total: 0, page: 1, totalPages: 1 };
+  }
+};
+
+const categoriesPromise = getOrSetCache('blog:categories:v2', CACHE_TTL.categories, fetchBlogCategories);
+const postsPagePromise =
+  selectedCategorySlug === 'all'
+    ? getOrSetCache(`blog:posts:page=${currentPage}:category=all`, CACHE_TTL.postsPage, () => fetchPostsPage(currentPage, null))
+    : null;
+
+const categories = await categoriesPromise;
+const selectedCategory = categories.find((item) => item.slug === selectedCategorySlug) || null;
+const postsPage = await (
+  postsPagePromise
+  || getOrSetCache(
+    `blog:posts:page=${currentPage}:category=${selectedCategory?.id || 'all'}`,
+    CACHE_TTL.postsPage,
+    () => fetchPostsPage(currentPage, selectedCategory?.id || null)
+  )
+);
+const { items: posts, total, page, totalPages } = postsPage;
+
+const buildBlogUrl = (targetPage: number, targetCategorySlug: string): string => {
+  const params = new URLSearchParams();
+  if (targetCategorySlug && targetCategorySlug !== 'all') params.set('category', targetCategorySlug);
+  if (targetPage > 1) params.set('page', String(targetPage));
+  const query = params.toString();
+  return query ? `/blog?${query}` : '/blog';
+};
+
+const fromPage = Math.max(1, page - 2);
+const toPage = Math.min(totalPages, page + 2);
+const visiblePages = Array.from({ length: Math.max(0, toPage - fromPage + 1) }, (_, i) => fromPage + i);
+---
+
+<SiteLayout title="Blog - Aurelian Seafood" description="Tin tức ẩm thực, trải nghiệm nhà hàng và bài viết mới nhất từ Aurelian Seafood">
+  <section class="relative overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-8 right-0 w-72 h-72 bg-teal-400/20 rounded-full blur-3xl"></div>
+    <div class="max-w-6xl mx-auto px-6 pt-20 pb-12">
+      <p class="menu-kicker fade-up">Aurelian Journal</p>
+      <h1 class="blog-hero-title fade-up delay-1">Blog ẩm thực và trải nghiệm</h1>
+      <p class="blog-hero-lead fade-up delay-2">
+        Cập nhật xu hướng hải sản cao cấp, bí quyết chọn nguyên liệu và câu chuyện phía sau mỗi món ăn tại Aurelian.
+      </p>
+    </div>
+  </section>
+
+  <section class="section-shell pt-0">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="blog-filter-wrap card-glass p-4 md:p-5 mb-5">
+        <div class="blog-filter-row">
+          <a href={buildBlogUrl(1, 'all')} class:list={['blog-filter-chip', selectedCategory ? '' : 'is-active']}>
+            Tất cả bài viết
+          </a>
+          {categories.map((category) => (
+            <a
+              href={buildBlogUrl(1, category.slug)}
+              class:list={['blog-filter-chip', selectedCategory?.slug === category.slug ? 'is-active' : '']}
+            >
+              {category.name}
+            </a>
+          ))}
+        </div>
+        <p class="text-sm text-slate-300 mt-3">
+          {selectedCategory ? `Đang lọc: ${selectedCategory.name}` : 'Đang hiển thị toàn bộ bài viết'} • {total} bài viết
+        </p>
+      </div>
+
+      {posts.length > 0 ? (
+        <div class="blog-layout">
+          <div class="space-y-4">
+            {posts.map((post, index) => (
+              <article class="card-glass blog-post-card fade-up" style={`animation-delay: ${Math.min(index * 0.04, 0.32)}s`}>
+                <div class="blog-post-media-wrap">
+                  <a href={`/blog/${post.slug}`} aria-label={`Đọc bài ${post.title}`}>
+                    <img
+                      src={post.imageUrl}
+                      alt={post.title}
+                      class="blog-post-media"
+                      loading="lazy"
+                      decoding="async"
+                      width="860"
+                      height="460"
+                    />
+                  </a>
+                </div>
+                <div class="p-5 md:p-7">
+                  <div class="flex flex-wrap items-center gap-3 text-sm text-amber-200/80 mb-3">
+                    <a href={buildBlogUrl(1, post.categorySlug)} class="badge">{post.categoryName}</a>
+                    <span>{post.publishedAt}</span>
+                  </div>
+                  <h2 class="blog-post-title">
+                    <a href={`/blog/${post.slug}`} class="hover:text-amber-200 transition-colors">{post.title}</a>
+                  </h2>
+                  <p class="text-slate-300 mt-3">{post.excerpt}</p>
+                  <a href={`/blog/${post.slug}`} class="blog-read-more">Đọc bài viết</a>
+                </div>
+              </article>
+            ))}
+
+            {totalPages > 1 && (
+              <nav class="blog-pagination" aria-label="Phân trang blog">
+                <a
+                  href={buildBlogUrl(Math.max(1, page - 1), selectedCategory?.slug || 'all')}
+                  class:list={['blog-page-btn', page <= 1 ? 'is-disabled' : '']}
+                  aria-disabled={page <= 1 ? 'true' : 'false'}
+                >
+                  Trước
+                </a>
+                {visiblePages.map((num) => (
+                  <a
+                    href={buildBlogUrl(num, selectedCategory?.slug || 'all')}
+                    class:list={['blog-page-btn', num === page ? 'is-active' : '']}
+                    aria-current={num === page ? 'page' : undefined}
+                  >
+                    {num}
+                  </a>
+                ))}
+                <a
+                  href={buildBlogUrl(Math.min(totalPages, page + 1), selectedCategory?.slug || 'all')}
+                  class:list={['blog-page-btn', page >= totalPages ? 'is-disabled' : '']}
+                  aria-disabled={page >= totalPages ? 'true' : 'false'}
+                >
+                  Sau
+                </a>
+              </nav>
+            )}
+          </div>
+
+          <BlogSidebar server:defer>
+            <aside slot="fallback" class="blog-sidebar">
+              <section class="card-glass p-5 md:p-6">
+                <h3 class="blog-sidebar-title">Đang tải nội dung...</h3>
+                <p class="text-slate-300">Đang tải bài viết mới và món ăn đề xuất.</p>
+              </section>
+            </aside>
+          </BlogSidebar>
+        </div>
+      ) : (
+        <div class="card-glass p-10 text-center text-slate-200/90">
+          Không có bài viết phù hợp với bộ lọc hiện tại.
+        </div>
+      )}
+    </div>
+  </section>
+</SiteLayout>

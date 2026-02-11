@@ -48,6 +48,24 @@ export const getCategoryTreeValidation = [
 ];
 
 /**
+ * Validation for getting public categories
+ */
+export const getPublicCategoriesValidation = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100'),
+  query('status')
+    .optional()
+    .isIn(['active', 'inactive'])
+    .withMessage('Status must be either active or inactive')
+];
+
+/**
  * Validation for getting category by ID
  */
 export const getCategoryByIdValidation = [
@@ -202,6 +220,7 @@ export const reorderCategoriesValidation = [
 export default {
   handleValidationErrors,
   getCategoriesValidation,
+  getPublicCategoriesValidation,
   getCategoryTreeValidation,
   getCategoryByIdValidation,
   getCategoryBySlugValidation,

@@ -1,0 +1,172 @@
+---
+import type { Post } from '@/lib/api/posts';
+import type { Product, ProductPrice } from '@/lib/api/products';
+import { fetchJsonWithTimeout, getOrSetCache } from '@/lib/server/perf';
+import seafoodHero from '@/assets/images/seafood-hero.jpg';
+import seafoodRoom from '@/assets/images/seafood-room.jpg';
+import seafoodAbout from '@/assets/images/seafood-about.jpg';
+
+interface Props {
+  currentPostSlug?: string;
+}
+
+interface LatestPostItem {
+  id: number;
+  slug: string;
+  title: string;
+  publishedAt: string;
+}
+
+interface BestSellerItem {
+  id: number;
+  name: string;
+  priceText: string;
+  imageUrl: string;
+}
+
+const { currentPostSlug } = Astro.props;
+const apiBaseUrl = import.meta.env.PUBLIC_API_URL || 'https://vuapiastronhahang.nguyenluan.vn/api/v1';
+const uploadsBaseUrl = apiBaseUrl.replace(/\/api\/v\d+\/?$/, '');
+const fallbackImages = [seafoodHero.src, seafoodRoom.src, seafoodAbout.src];
+const CACHE_TTL = {
+  latestPosts: 60 * 1000,
+  bestSellers: 60 * 1000
+} as const;
+
+const toAbsoluteImageUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${uploadsBaseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
+const formatCurrencyVnd = (value: number): string => `${new Intl.NumberFormat('vi-VN').format(value)} VND`;
+
+const pickDefaultPrice = (prices: ProductPrice[] | undefined): number | null => {
+  if (!prices || prices.length === 0) return null;
+  const activePrices = prices.filter((price) => price.status === 'active');
+  const defaultPrice = activePrices.find((price) => price.is_default) || activePrices[0];
+  if (!defaultPrice) return null;
+  return Number(defaultPrice.sale_price ?? defaultPrice.price);
+};
+
+const formatDateVi = (input: string | null | undefined): string => {
+  if (!input) return 'Mới cập nhật';
+  const parsed = new Date(input);
+  if (Number.isNaN(parsed.getTime())) return 'Mới cập nhật';
+  return parsed.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const fetchLatestPosts = async (excludeSlug?: string): Promise<LatestPostItem[]> => {
+  try {
+    const payload = await fetchJsonWithTimeout<{ data?: Post[] }>(
+      `${apiBaseUrl}/posts/public?page=1&limit=8`,
+      { headers: { accept: 'application/json' } },
+      3000
+    );
+    const posts: Post[] = Array.isArray(payload?.data) ? payload.data : [];
+
+    return posts
+      .filter((item) => (excludeSlug ? item.slug !== excludeSlug : true))
+      .slice(0, 6)
+      .map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        publishedAt: formatDateVi(item.published_at || item.created_at)
+      }));
+  } catch {
+    return [];
+  }
+};
+
+const fetchBestSellerProducts = async (): Promise<BestSellerItem[]> => {
+  const mapProducts = (products: Product[]): BestSellerItem[] => {
+    return products.slice(0, 6).map((product, index) => {
+      const priceValue = pickDefaultPrice(product.prices);
+      return {
+        id: product.id,
+        name: product.name,
+        priceText: priceValue !== null ? formatCurrencyVnd(priceValue) : 'Liên hệ',
+        imageUrl:
+          toAbsoluteImageUrl(product.featuredImage?.thumbnail_path)
+          || toAbsoluteImageUrl(product.featuredImage?.path)
+          || fallbackImages[index % fallbackImages.length]
+      };
+    });
+  };
+
+  try {
+    const featuredPayload = await fetchJsonWithTimeout<{ data?: Product[] }>(
+      `${apiBaseUrl}/products/public?page=1&limit=6&isFeatured=true`,
+      { headers: { accept: 'application/json' } },
+      3000
+    );
+    const featuredProducts: Product[] = Array.isArray(featuredPayload?.data) ? featuredPayload.data : [];
+    if (featuredProducts.length > 0) return mapProducts(featuredProducts);
+
+    const fallbackPayload = await fetchJsonWithTimeout<{ data?: Product[] }>(
+      `${apiBaseUrl}/products/public?page=1&limit=6`,
+      { headers: { accept: 'application/json' } },
+      3000
+    );
+    const fallbackProducts: Product[] = Array.isArray(fallbackPayload?.data) ? fallbackPayload.data : [];
+    return mapProducts(fallbackProducts);
+  } catch {
+    return [];
+  }
+};
+
+const [latestPosts, bestSellers] = await Promise.all([
+  getOrSetCache(
+    `blog:sidebar:latest:exclude=${currentPostSlug || 'none'}`,
+    CACHE_TTL.latestPosts,
+    () => fetchLatestPosts(currentPostSlug)
+  ),
+  getOrSetCache('blog:best-sellers:v1', CACHE_TTL.bestSellers, fetchBestSellerProducts)
+]);
+---
+
+<aside class="blog-sidebar">
+  <section class="card-glass p-5 md:p-6">
+    <h3 class="blog-sidebar-title">Món ăn best seller</h3>
+    {bestSellers.length > 0 ? (
+      <div class="blog-side-list">
+        {bestSellers.map((item) => (
+          <a href="/menu" class="blog-side-item">
+            <img
+              src={item.imageUrl}
+              alt={item.name}
+              class="blog-side-thumb"
+              loading="lazy"
+              decoding="async"
+              width="120"
+              height="86"
+            />
+            <div>
+              <p class="blog-side-name">{item.name}</p>
+              <p class="blog-side-price">{item.priceText}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p class="text-slate-300">Chưa có dữ liệu món ăn best seller.</p>
+    )}
+  </section>
+
+  <section class="card-glass p-5 md:p-6">
+    <h3 class="blog-sidebar-title">Bài viết mới nhất</h3>
+    {latestPosts.length > 0 ? (
+      <div class="blog-side-list">
+        {latestPosts.map((item) => (
+          <a href={`/blog/${item.slug}`} class="blog-latest-item">
+            <p class="blog-latest-title">{item.title}</p>
+            <p class="blog-latest-date">{item.publishedAt}</p>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p class="text-slate-300">Chưa có bài viết mới.</p>
+    )}
+  </section>
+</aside>

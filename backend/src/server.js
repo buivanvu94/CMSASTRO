@@ -2,6 +2,10 @@ import app from './app.js';
 import { config } from './config/index.js';
 import { syncDatabase } from './config/database.js';
 import logger from './utils/logger.js';
+import {
+  startReservationReminderScheduler,
+  stopReservationReminderScheduler
+} from './modules/reservations/reservation-reminder.service.js';
 
 /**
  * Server Configuration
@@ -31,6 +35,7 @@ const startServer = async () => {
       logger.info(`API Base URL: http://${HOST}:${PORT}/api/v1`);
       logger.info(`Health Check: http://${HOST}:${PORT}/health`);
     });
+    startReservationReminderScheduler();
 
     // Handle server errors
     server.on('error', (error) => {
@@ -57,6 +62,7 @@ const gracefulShutdown = async (signal) => {
   if (server) {
     server.close(async () => {
       logger.info('✅ HTTP server closed');
+      stopReservationReminderScheduler();
 
       try {
         // Close database connection
@@ -108,3 +114,4 @@ process.on('unhandledRejection', (reason, promise) => {
  * Start the server
  */
 startServer();
+

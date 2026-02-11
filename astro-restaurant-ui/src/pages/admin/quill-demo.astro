@@ -1,0 +1,21 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import QuillEditorDemo from '@/components/islands/QuillEditorDemo';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Quill Editor Demo - CMS Admin">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-100 via-yellow-300 to-amber-200 bg-clip-text text-transparent">
+        Quill Editor Demo
+      </h1>
+      <p class="mt-2 text-base text-amber-200/70">
+        Test và khám phá các tính năng của Quill Editor
+      </p>
+    </div>
+
+    <QuillEditorDemo client:load />
+  </div>
+</DashboardLayout>

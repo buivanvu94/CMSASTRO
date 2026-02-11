@@ -87,10 +87,101 @@ export const getSettingsAsObjectValidation = [
     .trim()
 ];
 
+export const updateBookingEmailConfigValidation = [
+  body('smtpHost')
+    .optional()
+    .isString()
+    .trim(),
+  body('smtpPort')
+    .optional()
+    .isInt({ min: 1, max: 65535 })
+    .withMessage('SMTP port must be between 1 and 65535'),
+  body('smtpSecure')
+    .optional()
+    .isBoolean()
+    .withMessage('smtpSecure must be boolean'),
+  body('smtpUser')
+    .optional()
+    .isString()
+    .trim(),
+  body('smtpPass')
+    .optional()
+    .isString(),
+  body('smtpFrom')
+    .optional()
+    .isString()
+    .trim(),
+  body('smtpReplyTo')
+    .optional()
+    .isString()
+    .trim(),
+  body('adminBookingNotificationEnabled')
+    .optional()
+    .isBoolean()
+    .withMessage('adminBookingNotificationEnabled must be boolean'),
+  body('adminBookingNotificationEmails')
+    .optional()
+    .custom((value) => {
+      if (Array.isArray(value)) return true;
+      if (typeof value === 'string') return true;
+      throw new Error('adminBookingNotificationEmails must be string or array');
+    }),
+  body('reminderEnabled')
+    .optional()
+    .isBoolean()
+    .withMessage('reminderEnabled must be boolean'),
+  body('reminderLeadHours')
+    .optional()
+    .isInt({ min: 1, max: 168 })
+    .withMessage('reminderLeadHours must be between 1 and 168'),
+  body('emailTemplates')
+    .optional()
+    .isObject()
+    .withMessage('emailTemplates must be an object'),
+  body('emailTemplates.customerBookingCreated.subject')
+    .optional()
+    .isString()
+    .isLength({ min: 1, max: 300 })
+    .withMessage('customer booking subject must be between 1 and 300 characters'),
+  body('emailTemplates.customerBookingCreated.body')
+    .optional()
+    .isString()
+    .isLength({ min: 1, max: 10000 })
+    .withMessage('customer booking body must be between 1 and 10000 characters'),
+  body('emailTemplates.adminBookingCreated.subject')
+    .optional()
+    .isString()
+    .isLength({ min: 1, max: 300 })
+    .withMessage('admin booking subject must be between 1 and 300 characters'),
+  body('emailTemplates.adminBookingCreated.body')
+    .optional()
+    .isString()
+    .isLength({ min: 1, max: 10000 })
+    .withMessage('admin booking body must be between 1 and 10000 characters'),
+  body('emailTemplates.customerBookingReminder.subject')
+    .optional()
+    .isString()
+    .isLength({ min: 1, max: 300 })
+    .withMessage('reminder subject must be between 1 and 300 characters'),
+  body('emailTemplates.customerBookingReminder.body')
+    .optional()
+    .isString()
+    .isLength({ min: 1, max: 10000 })
+    .withMessage('reminder body must be between 1 and 10000 characters')
+];
+
+export const testBookingSmtpValidation = [
+  body('testTo')
+    .isEmail()
+    .withMessage('testTo must be a valid email')
+];
+
 export default {
   handleValidationErrors,
   getSettingByKeyValidation,
   getSettingsByGroupValidation,
   updateSettingsValidation,
-  getSettingsAsObjectValidation
+  getSettingsAsObjectValidation,
+  updateBookingEmailConfigValidation,
+  testBookingSmtpValidation
 };

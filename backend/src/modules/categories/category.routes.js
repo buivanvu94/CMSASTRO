@@ -12,6 +12,17 @@ const router = express.Router();
  */
 
 /**
+ * GET /categories/public
+ * Get public categories for frontend pages
+ */
+router.get(
+  '/public',
+  categoryValidation.getPublicCategoriesValidation,
+  categoryValidation.handleValidationErrors,
+  categoryController.getPublicCategories
+);
+
+/**
  * GET /categories/stats
  * Get category statistics
  */

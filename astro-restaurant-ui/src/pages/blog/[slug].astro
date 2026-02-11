@@ -1,0 +1,161 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import BlogSidebar from '@/components/blog/BlogSidebar.astro';
+import type { Post } from '@/lib/api/posts';
+import { fetchJsonWithTimeout, getOrSetCache } from '@/lib/server/perf';
+import seafoodHero from '@/assets/images/seafood-hero.jpg';
+import seafoodRoom from '@/assets/images/seafood-room.jpg';
+import seafoodAbout from '@/assets/images/seafood-about.jpg';
+
+export const prerender = false;
+
+interface BlogPostDetail {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  contentHtml: string;
+  categoryName: string;
+  publishedAt: string;
+  imageUrl: string;
+  readMinutes: number;
+}
+
+const { slug } = Astro.params;
+const apiBaseUrl = import.meta.env.PUBLIC_API_URL || 'https://vuapiastronhahang.nguyenluan.vn/api/v1';
+const uploadsBaseUrl = apiBaseUrl.replace(/\/api\/v\d+\/?$/, '');
+const fallbackImages = [seafoodHero.src, seafoodRoom.src, seafoodAbout.src];
+const BLOG_DETAIL_CACHE_CONTROL = 'public, max-age=60, s-maxage=180, stale-while-revalidate=300';
+const CACHE_TTL = {
+  postDetail: 45 * 1000
+} as const;
+
+Astro.response.headers.set('Cache-Control', BLOG_DETAIL_CACHE_CONTROL);
+
+const toAbsoluteImageUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${uploadsBaseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
+const plainTextFromHtml = (input: string | null | undefined): string => {
+  return (input || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
+const normalizeExcerpt = (excerpt: string | null | undefined, content: string | null | undefined): string => {
+  const source = excerpt?.trim() || plainTextFromHtml(content);
+  if (!source) return 'Khám phá góc nhìn ẩm thực và trải nghiệm fine dining tại Aurelian Seafood.';
+  return source.length > 190 ? `${source.slice(0, 190).trim()}...` : source;
+};
+
+const formatDateVi = (input: string | null | undefined): string => {
+  if (!input) return 'Mới cập nhật';
+  const parsed = new Date(input);
+  if (Number.isNaN(parsed.getTime())) return 'Mới cập nhật';
+  return parsed.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const estimateReadTime = (content: string | null | undefined): number => {
+  const text = plainTextFromHtml(content);
+  if (!text) return 1;
+  const words = text.split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 220));
+};
+
+const fetchPublicPostBySlug = async (postSlug: string): Promise<BlogPostDetail | null> => {
+  try {
+    const payload = await fetchJsonWithTimeout<{ data?: Post }>(
+      `${apiBaseUrl}/posts/public/slug/${encodeURIComponent(postSlug)}`,
+      { headers: { accept: 'application/json' } },
+      3500
+    );
+    const post: Post | null = payload?.data || null;
+    if (!post) return null;
+
+    return {
+      id: post.id,
+      slug: post.slug,
+      title: post.title,
+      excerpt: normalizeExcerpt(post.excerpt, post.content),
+      contentHtml: post.content || '',
+      categoryName: post.category?.name || 'Ẩm thực',
+      publishedAt: formatDateVi(post.published_at || post.created_at),
+      imageUrl:
+        toAbsoluteImageUrl(post.featuredImage?.thumbnail_path)
+        || toAbsoluteImageUrl(post.featuredImage?.path)
+        || fallbackImages[0],
+      readMinutes: estimateReadTime(post.content)
+    };
+  } catch {
+    return null;
+  }
+};
+
+const post = slug
+  ? await getOrSetCache(`blog:detail:${slug}`, CACHE_TTL.postDetail, () => fetchPublicPostBySlug(slug))
+  : null;
+
+if (!post) {
+  Astro.response.status = 404;
+}
+
+const pageTitle = post ? `${post.title} - Blog Aurelian Seafood` : 'Bài viết không tồn tại - Aurelian Seafood';
+const pageDescription = post?.excerpt || 'Bài viết không tồn tại hoặc đã bị ẩn.';
+---
+
+<SiteLayout title={pageTitle} description={pageDescription}>
+  <section class="relative overflow-hidden">
+    <div aria-hidden="true" class="pointer-events-none absolute -top-24 -left-24 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl"></div>
+    <div aria-hidden="true" class="pointer-events-none absolute top-8 right-0 w-72 h-72 bg-teal-400/20 rounded-full blur-3xl"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-6 pt-16 pb-10">
+      <a href="/blog" class="blog-back-link">Quay lại Blog</a>
+    </div>
+  </section>
+
+  <section class="section-shell pt-0">
+    <div class="max-w-6xl mx-auto px-6">
+      {post ? (
+        <div class="blog-layout">
+          <article class="card-glass blog-detail-card">
+            <div class="blog-detail-media-wrap">
+              <img
+                src={post.imageUrl}
+                alt={post.title}
+                class="blog-detail-media"
+                loading="eager"
+                decoding="async"
+                width="1100"
+                height="600"
+              />
+            </div>
+            <div class="p-6 md:p-10">
+              <div class="flex flex-wrap items-center gap-3 text-sm text-amber-200/80 mb-4">
+                <span class="badge">{post.categoryName}</span>
+                <span>{post.publishedAt}</span>
+                <span>{post.readMinutes} phút đọc</span>
+              </div>
+              <h1 class="blog-detail-title">{post.title}</h1>
+              <p class="blog-detail-excerpt">{post.excerpt}</p>
+              <div class="blog-content prose-content" set:html={post.contentHtml}></div>
+            </div>
+          </article>
+
+          <BlogSidebar server:defer currentPostSlug={post.slug}>
+            <aside slot="fallback" class="blog-sidebar">
+              <section class="card-glass p-5 md:p-6">
+                <h3 class="blog-sidebar-title">Đang tải nội dung...</h3>
+                <p class="text-slate-300">Đang tải bài viết mới và món ăn đề xuất.</p>
+              </section>
+            </aside>
+          </BlogSidebar>
+        </div>
+      ) : (
+        <div class="card-glass p-10 text-center">
+          <h1 class="text-3xl mb-3">Không tìm thấy bài viết</h1>
+          <p class="text-slate-300 mb-5">Bài viết có thể đã bị ẩn hoặc đường dẫn không chính xác.</p>
+          <a href="/blog" class="btn-primary inline-block">Về trang Blog</a>
+        </div>
+      )}
+    </div>
+  </section>
+</SiteLayout>

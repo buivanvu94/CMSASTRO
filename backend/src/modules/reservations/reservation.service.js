@@ -2,6 +2,13 @@ import { Op } from 'sequelize';
 import Reservation from './reservation.model.js';
 import User from '../users/user.model.js';
 import { NotFoundError, ValidationError } from '../../middlewares/errorHandler.js';
+import ReservationReminderLog from './reservation-reminder-log.model.js';
+import {
+  sendAdminBookingCreatedEmail,
+  sendCustomerBookingCreatedEmail
+} from './reservation.mailer.js';
+import { getBookingEmailRuntimeConfig } from '../settings/setting.service.js';
+import logger from '../../utils/logger.js';
 
 /**
  * Reservation Service
@@ -120,8 +127,28 @@ export const create = async (data) => {
     ...data,
     status: 'pending'
   });
+  const createdReservation = await findById(reservation.id);
 
-  return findById(reservation.id);
+  const bookingConfig = await getBookingEmailRuntimeConfig();
+  const customerMailResult = await sendCustomerBookingCreatedEmail(createdReservation, bookingConfig);
+
+  if (!customerMailResult.sent) {
+    await reservation.destroy();
+    throw new ValidationError('Khong the gui email xac nhan dat ban cho khach hang. Vui long thu lai sau.');
+  }
+
+  if (bookingConfig.adminBookingNotificationEnabled) {
+    const adminRecipients = bookingConfig.adminBookingNotificationEmails || [];
+    const adminMailResult = await sendAdminBookingCreatedEmail(createdReservation, adminRecipients, bookingConfig);
+    if (!adminMailResult.sent) {
+      logger.warn('Admin booking notification email was not sent', {
+        reservationId: createdReservation.id,
+        reason: adminMailResult.reason || 'unknown'
+      });
+    }
+  }
+
+  return createdReservation;
 };
 
 /**
@@ -152,6 +179,16 @@ export const update = async (id, data) => {
   }
 
   await reservation.update(data);
+
+  if (data.reservation_date || data.reservation_time) {
+    await ReservationReminderLog.destroy({
+      where: {
+        reservation_id: reservation.id,
+        reminder_type: 'meal_reminder'
+      }
+    });
+  }
+
   return findById(reservation.id);
 };
 

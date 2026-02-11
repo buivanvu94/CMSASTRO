@@ -38,6 +38,29 @@ export const getCategories = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Get public categories for frontend pages
+ * GET /categories/public
+ */
+export const getPublicCategories = asyncHandler(async (req, res) => {
+  const { page, limit, status } = req.query;
+
+  const result = await categoryService.findPublic({
+    page: parseInt(page, 10) || 1,
+    limit: parseInt(limit, 10) || 100,
+    status: status || 'active'
+  });
+
+  return paginatedResponse(
+    res,
+    result.categories,
+    result.total,
+    result.page,
+    result.limit,
+    'Public categories retrieved successfully'
+  );
+});
+
+/**
  * Get categories in tree structure
  * GET /categories/tree
  */
@@ -135,6 +158,7 @@ export const getStats = asyncHandler(async (req, res) => {
 
 export default {
   getCategories,
+  getPublicCategories,
   getCategoryTree,
   getCategoryById,
   getCategoryBySlug,

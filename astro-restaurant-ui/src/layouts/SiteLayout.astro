@@ -1,0 +1,148 @@
+﻿---
+import '../styles/global.css';
+import '../styles/seafood.css';
+
+export interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'Aurelian Seafood', description = 'Nhà hàng hải sản cao cấp' } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="site-shell">
+    <header class="site-header">
+      <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full border border-amber-300/60 grid place-items-center">AS</div>
+          <div>
+            <p class="text-xs text-amber-200/80">Aurelian</p>
+            <p class="text-base font-semibold">Seafood</p>
+          </div>
+        </a>
+        <nav class="hidden md:flex items-center gap-8 text-sm">
+          <a class="nav-link" href="/">Trang chủ</a>
+          <a class="nav-link" href="/menu">Thực đơn</a>
+          <a class="nav-link" href="/blog">Blog</a>
+          <a class="nav-link" href="/gioi-thieu">Giới thiệu</a>
+          <a class="nav-link" href="/lien-he">Liên hệ</a>
+        </nav>
+        <div class="flex items-center gap-2">
+          <a class="btn-outline nav-booking-btn inline-flex" href="/lien-he">Đặt bàn</a>
+          <button
+            type="button"
+            class="mobile-menu-toggle md:hidden"
+            aria-label="Mở menu điều hướng"
+            aria-controls="mobile-nav-canvas"
+            aria-expanded="false"
+            data-mobile-menu-open
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+    <div class="mobile-drawer-backdrop" data-mobile-backdrop hidden></div>
+    <aside id="mobile-nav-canvas" class="mobile-drawer-panel" data-mobile-panel aria-hidden="true" inert>
+      <div class="flex items-center justify-end mb-6">
+        <button type="button" class="mobile-close-btn" aria-label="Đóng menu" data-mobile-menu-close>×</button>
+      </div>
+      <nav class="mobile-drawer-nav">
+        <a href="/" data-mobile-nav-link>Trang chủ</a>
+        <a href="/menu" data-mobile-nav-link>Thực đơn</a>
+        <a href="/blog" data-mobile-nav-link>Blog</a>
+        <a href="/gioi-thieu" data-mobile-nav-link>Giới thiệu</a>
+        <a href="/lien-he" data-mobile-nav-link>Liên hệ</a>
+      </nav>
+      <a class="btn-primary inline-flex justify-center mt-6 w-full" href="/lien-he" data-mobile-nav-link>Đặt bàn ngay</a>
+    </aside>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 xl:grid-cols-4 gap-10">
+        <div>
+          <p class="text-2xl font-semibold">Aurelian Seafood</p>
+          <p class="text-base text-slate-300 mt-3">Fine dining hải sản sang trọng với cảm hứng đại dương.</p>
+          <div class="flex items-center gap-3 mt-5">
+            <a class="footer-link text-sm" href="#">Instagram</a>
+            <a class="footer-link text-sm" href="#">Facebook</a>
+            <a class="footer-link text-sm" href="#">TikTok</a>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm uppercase tracking-widest text-amber-200/80">Liên hệ</p>
+          <p class="text-base text-slate-300 mt-3">88 Nguyễn Du, Quận 1, TP HCM</p>
+          <p class="text-base text-slate-300">0394296000 (Vũ) - Liên hệ công việc</p>
+          <p class="text-base text-slate-300">booking@aurelianseafood.vn</p>
+        </div>
+        <div>
+          <p class="text-sm uppercase tracking-widest text-amber-200/80">Điều hướng</p>
+          <div class="space-y-2 mt-3 text-base">
+            <a class="footer-link block" href="/">Trang chủ</a>
+            <a class="footer-link block" href="/menu">Thực đơn</a>
+            <a class="footer-link block" href="/blog">Blog</a>
+            <a class="footer-link block" href="/gioi-thieu">Giới thiệu</a>
+            <a class="footer-link block" href="/lien-he">Liên hệ</a>
+          </div>
+        </div>
+        <div class="card-glass p-5">
+          <p class="text-sm uppercase tracking-widest text-amber-200/80">Giờ mở cửa</p>
+          <p class="text-base text-slate-300 mt-2">11:00 - 23:00 mỗi ngày</p>
+          <p class="text-base text-slate-300">Nhận đặt bàn nhanh trong 15 phút.</p>
+          <a class="btn-primary inline-block mt-4" href="/lien-he">Đặt bàn ngay</a>
+        </div>
+      </div>
+      <p class="text-center text-sm text-slate-500 mt-12">© 2026 Aurelian Seafood. All rights reserved.</p>
+    </footer>
+    <script is:inline>
+      (() => {
+        const openButton = document.querySelector('[data-mobile-menu-open]');
+        const closeButton = document.querySelector('[data-mobile-menu-close]');
+        const panel = document.querySelector('[data-mobile-panel]');
+        const backdrop = document.querySelector('[data-mobile-backdrop]');
+        const links = Array.from(document.querySelectorAll('[data-mobile-nav-link]'));
+        if (!openButton || !closeButton || !panel || !backdrop) return;
+
+        const openMenu = () => {
+          document.body.classList.add('mobile-nav-open');
+          panel.setAttribute('aria-hidden', 'false');
+          panel.removeAttribute('inert');
+          openButton.setAttribute('aria-expanded', 'true');
+          backdrop.hidden = false;
+        };
+
+        const closeMenu = () => {
+          document.body.classList.remove('mobile-nav-open');
+          panel.setAttribute('aria-hidden', 'true');
+          panel.setAttribute('inert', '');
+          openButton.setAttribute('aria-expanded', 'false');
+          backdrop.hidden = true;
+        };
+
+        openButton.addEventListener('click', openMenu);
+        closeButton.addEventListener('click', closeMenu);
+        backdrop.addEventListener('click', closeMenu);
+        links.forEach((link) => link.addEventListener('click', closeMenu));
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            closeMenu();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
+

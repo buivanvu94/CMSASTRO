@@ -1,0 +1,299 @@
+---
+import type { Product, ProductPrice } from '@/lib/api/products';
+import seafoodHero from '@/assets/images/seafood-hero.jpg';
+import seafoodRoom from '@/assets/images/seafood-room.jpg';
+import seafoodAbout from '@/assets/images/seafood-about.jpg';
+import { fetchJsonWithTimeout, getOrSetCache } from '@/lib/server/perf';
+
+interface MenuProductItem {
+  id: number;
+  name: string;
+  desc: string;
+  priceText: string;
+  imageUrl: string;
+  categoryName: string;
+  categorySlug: string;
+}
+
+interface MenuGroup {
+  key: string;
+  name: string;
+  items: MenuProductItem[];
+}
+
+type ProductListPayload = {
+  data?: Product[];
+  pagination?: {
+    totalPages?: number;
+    total_pages?: number;
+  };
+};
+
+const apiBaseUrl = import.meta.env.PUBLIC_API_URL || 'https://vuapiastronhahang.nguyenluan.vn/api/v1';
+const uploadsBaseUrl = apiBaseUrl.replace(/\/api\/v\d+\/?$/, '');
+const fallbackImages = [seafoodHero.src, seafoodRoom.src, seafoodAbout.src];
+const CACHE_TTL = 60 * 1000;
+const PAGE_SIZE = 100;
+const MAX_TOTAL_PAGES = 20;
+
+const formatCurrencyVnd = (value: number): string => `${new Intl.NumberFormat('vi-VN').format(value)} VND`;
+
+const toAbsoluteImageUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${uploadsBaseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
+const slugify = (value: string): string => {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .trim();
+};
+
+const pickDefaultPrice = (prices: ProductPrice[] | undefined): number | null => {
+  if (!prices || prices.length === 0) return null;
+  const activePrices = prices.filter((price) => price.status === 'active');
+  const defaultPrice = activePrices.find((price) => price.is_default) || activePrices[0];
+  if (!defaultPrice) return null;
+  return Number(defaultPrice.sale_price ?? defaultPrice.price);
+};
+
+const normalizeDesc = (description: string | null | undefined): string => {
+  if (!description) return 'Tinh hoa hải sản cao cấp được chế biến theo phong cách fine dining.';
+  return description.length > 120 ? `${description.slice(0, 120).trim()}...` : description;
+};
+
+const fetchProductsPage = async (page: number): Promise<ProductListPayload | null> => {
+  try {
+    return await fetchJsonWithTimeout<ProductListPayload>(
+      `${apiBaseUrl}/products/public?page=${page}&limit=${PAGE_SIZE}`,
+      { headers: { accept: 'application/json' } },
+      3500
+    );
+  } catch {
+    return null;
+  }
+};
+
+const fetchAllPublicProducts = async (): Promise<MenuProductItem[]> => {
+  const firstPage = await fetchProductsPage(1);
+  const firstProducts = Array.isArray(firstPage?.data) ? firstPage.data : [];
+  if (firstProducts.length === 0) return [];
+
+  const rawTotalPages = Number(firstPage?.pagination?.totalPages || firstPage?.pagination?.total_pages || 1);
+  const totalPages = Math.max(1, Math.min(MAX_TOTAL_PAGES, rawTotalPages));
+
+  const remainingPages = totalPages > 1
+    ? await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, idx) => fetchProductsPage(idx + 2))
+    )
+    : [];
+
+  const allProducts: Product[] = [...firstProducts];
+  remainingPages.forEach((payload) => {
+    const products = Array.isArray(payload?.data) ? payload.data : [];
+    allProducts.push(...products);
+  });
+
+  return allProducts.map((product, index) => {
+    const categoryName = product.category?.name?.trim() || 'Món đặc biệt';
+    const priceValue = pickDefaultPrice(product.prices);
+    const imageUrl = toAbsoluteImageUrl(product.featuredImage?.thumbnail_path)
+      || toAbsoluteImageUrl(product.featuredImage?.path)
+      || fallbackImages[index % fallbackImages.length];
+
+    return {
+      id: product.id,
+      name: product.name,
+      desc: normalizeDesc(product.short_description || product.description),
+      priceText: priceValue !== null ? formatCurrencyVnd(priceValue) : 'Liên hệ',
+      imageUrl,
+      categoryName,
+      categorySlug: product.category?.slug || slugify(categoryName) || 'menu'
+    };
+  });
+};
+
+const menuItems = await getOrSetCache('menu:catalog:v1', CACHE_TTL, fetchAllPublicProducts);
+const groupedMenuMap = menuItems.reduce((map, item) => {
+  const key = item.categorySlug;
+  if (!map.has(key)) {
+    map.set(key, { key, name: item.categoryName, items: [] } as MenuGroup);
+  }
+  map.get(key)!.items.push(item);
+  return map;
+}, new Map<string, MenuGroup>());
+const groupedMenu = Array.from(groupedMenuMap.values());
+---
+
+<div data-menu-root>
+  {groupedMenu.length > 0 ? (
+    <>
+      <div class="menu-category-nav" id="menu-category-nav">
+        <div class="menu-filter-row" role="tablist" aria-label="Lọc theo danh mục">
+          <button class="menu-category-chip is-active" type="button" data-menu-chip data-filter-key="all" aria-pressed="true">
+            <span>Tất cả</span>
+            <span class="menu-category-count">{menuItems.length}</span>
+          </button>
+          {groupedMenu.map((group) => (
+            <button class="menu-category-chip" type="button" data-menu-chip data-filter-key={group.key} aria-pressed="false">
+              <span>{group.name}</span>
+              <span class="menu-category-count">{group.items.length}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div class="menu-category-stack">
+        {groupedMenu.map((group, groupIndex) => (
+          <section
+            id={`menu-cat-${group.key}`}
+            class="menu-category-section fade-up"
+            data-menu-section
+            data-category-key={group.key}
+            style={`animation-delay: ${Math.min(groupIndex * 0.06, 0.45)}s`}
+          >
+            <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
+              <div>
+                <p class="menu-kicker">Danh mục</p>
+                <h2 class="menu-category-title">{group.name}</h2>
+              </div>
+              <span class="badge">{group.items.length} món</span>
+            </div>
+
+            <div class="menu-catalog-grid">
+              {group.items.map((item) => (
+                <article class="card-glass menu-catalog-card">
+                  <div class="menu-catalog-media-wrap">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      class="menu-catalog-media"
+                      loading="lazy"
+                      decoding="async"
+                      width="180"
+                      height="135"
+                    />
+                  </div>
+                  <div class="menu-catalog-content">
+                    <div class="menu-item-top">
+                      <p class="menu-item-name">{item.name}</p>
+                      <span class="menu-item-price">{item.priceText}</span>
+                    </div>
+                    <p class="menu-item-desc">{item.desc}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </>
+  ) : (
+    <div class="card-glass p-9 text-center text-slate-200/90">
+      Hiện chưa có sản phẩm xuất bản để hiển thị thực đơn.
+    </div>
+  )}
+</div>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector('[data-menu-root]');
+    if (!root) return;
+
+    const chips = Array.from(root.querySelectorAll('[data-menu-chip]'));
+    const sections = Array.from(root.querySelectorAll('[data-menu-section]'));
+    const nav = document.getElementById('menu-category-nav');
+    if (!chips.length || !sections.length) return;
+
+    let activeFilter = 'all';
+
+    const setActiveChip = (key) => {
+      chips.forEach((chip) => {
+        const isActive = chip.getAttribute('data-filter-key') === key;
+        chip.classList.toggle('is-active', isActive);
+        chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    };
+
+    const syncQuery = (key) => {
+      const url = new URL(window.location.href);
+      if (key === 'all') {
+        url.searchParams.delete('category');
+      } else {
+        url.searchParams.set('category', key);
+      }
+      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    };
+
+    const applyFilter = (key, shouldScroll = true) => {
+      activeFilter = key;
+      const showAll = key === 'all';
+
+      sections.forEach((section) => {
+        const sectionKey = section.getAttribute('data-category-key');
+        section.hidden = !showAll && sectionKey !== key;
+      });
+
+      setActiveChip(key);
+      syncQuery(key);
+
+      if (!shouldScroll) return;
+      if (showAll) {
+        nav?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      const target = sections.find((section) => section.getAttribute('data-category-key') === key);
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const key = chip.getAttribute('data-filter-key') || 'all';
+        applyFilter(key, true);
+      });
+    });
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (activeFilter !== 'all') return;
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+          if (!visible) return;
+          const key = visible.target.getAttribute('data-category-key');
+          if (!key) return;
+          setActiveChip(key);
+        },
+        {
+          rootMargin: '-20% 0px -55% 0px',
+          threshold: [0.25, 0.4, 0.6]
+        }
+      );
+
+      sections.forEach((section) => observer.observe(section));
+    }
+
+    const fromQuery = new URLSearchParams(window.location.search).get('category');
+    if (fromQuery && sections.some((section) => section.getAttribute('data-category-key') === fromQuery)) {
+      applyFilter(fromQuery, false);
+      return;
+    }
+
+    const fromHash = window.location.hash.replace('#menu-cat-', '').trim();
+    if (fromHash && sections.some((section) => section.getAttribute('data-category-key') === fromHash)) {
+      setActiveChip(fromHash);
+      return;
+    }
+
+    setActiveChip('all');
+    syncQuery('all');
+  })();
+</script>

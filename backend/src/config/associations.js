@@ -11,6 +11,7 @@ import Post from '../modules/posts/post.model.js';
 import Product from '../modules/products/product.model.js';
 import ProductPrice from '../modules/products/product-price.model.js';
 import Reservation from '../modules/reservations/reservation.model.js';
+import ReservationReminderLog from '../modules/reservations/reservation-reminder-log.model.js';
 import Menu from '../modules/menus/menu.model.js';
 import MenuItem from '../modules/menus/menu-item.model.js';
 
@@ -138,6 +139,18 @@ export const setupAssociations = () => {
   User.hasMany(Reservation, {
     as: 'handledReservations',
     foreignKey: 'handler_id'
+  });
+
+  // Reservation <-> Reminder logs
+  Reservation.hasMany(ReservationReminderLog, {
+    as: 'reminderLogs',
+    foreignKey: 'reservation_id',
+    onDelete: 'CASCADE'
+  });
+  ReservationReminderLog.belongsTo(Reservation, {
+    as: 'reservation',
+    foreignKey: 'reservation_id',
+    onDelete: 'CASCADE'
   });
 
   // Menu <-> MenuItem
